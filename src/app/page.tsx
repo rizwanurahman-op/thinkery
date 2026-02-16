@@ -231,24 +231,26 @@ function AboutSection() {
     <Section id="about" className="py-24 md:py-32 relative overflow-hidden bg-cream-50">
       <div ref={ref} className="grid lg:grid-cols-2 gap-16 lg:gap-24 items-center max-w-7xl mx-auto px-4">
 
-        {/* Left Side: Premium Image Composition */}
-        <motion.div
-          initial={{ opacity: 0, x: -40 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 1, ease: "easeOut" }}
-          className="relative group"
-        >
-          {/* Main Image Base - Tall & Elegant */}
-          <div className="relative rounded-[2rem] overflow-hidden aspect-[3/4] md:aspect-[4/5] shadow-2xl shadow-olive-900/20">
+        {/* Visual Side (Arch Image with New Design) */}
+        <div className={`relative transition-all duration-1000 ${isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'}`}>
+          {/* Decorative Circle Behind */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-olive-50 rounded-full blur-3xl -z-10" />
+
+          <div className="relative rounded-t-full rounded-b-[3rem] overflow-hidden shadow-2xl aspect-[3.5/5] border-[8px] border-white">
             <OptimizedImage
-              src="/images/cafe-interior-2.jpg" // Using existing image
-              alt="Thinkery Café - comfortable seating area with olive green furniture in Calicut"
+              src="/images/cafe-interior-2.jpg"
+              alt="Premium Thinkery workspace in Calicut"
               fill
-              className="object-cover scale-100 group-hover:scale-105 transition-transform duration-1000 ease-out"
+              className="object-cover hover:scale-110 transition-transform duration-[2s] ease-in-out"
+              sizes="(max-width: 768px) 100vw, 50vw"
             />
-            {/* Gradient Overlay for Text Contrast later if needed, or just mood */}
-            <div className="absolute inset-0 bg-gradient-to-t from-olive-900/40 to-transparent opacity-60" />
+            {/* Overlay Gradient */}
+            <div className="absolute inset-0 bg-gradient-to-t from-olive-950/40 via-transparent to-transparent" />
+          </div>
+
+          {/* Floating Element - Coffee Icon */}
+          <div className="absolute -top-12 -right-8 w-24 h-24 bg-white rounded-full shadow-xl flex items-center justify-center animate-bounce-slow hidden lg:flex border border-olive-50">
+            <Coffee className="w-8 h-8 text-gold-500" />
           </div>
 
           {/* Floating Detail Card - "Vignette" with Meaning */}
@@ -257,7 +259,7 @@ function AboutSection() {
             whileInView={{ opacity: 1, y: 0, scale: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8, delay: 0.4 }}
-            className="absolute -bottom-6 -right-4 md:-bottom-10 md:-right-12 w-48 md:w-64 aspect-square bg-cream-50 rounded-3xl p-3 shadow-2xl shadow-olive-900/10 z-20"
+            className="absolute -bottom-6 -right-4 w-40 md:-bottom-12 md:-right-12 md:w-64 aspect-square bg-cream-50 rounded-3xl p-3 shadow-2xl shadow-olive-900/10 z-20"
           >
             <div className="relative w-full h-full rounded-2xl overflow-hidden border border-olive-100 group">
               <OptimizedImage
@@ -280,18 +282,9 @@ function AboutSection() {
               <Leaf className="w-4 h-4" />
             </div>
           </motion.div>
+        </div>
 
-          {/* Decor: Abstract Lines behind */}
-          <motion.div
-            initial={{ opacity: 0, rotate: -45 }}
-            whileInView={{ opacity: 1, rotate: 0 }}
-            transition={{ duration: 1.5, ease: "easeOut" }}
-            className="absolute -top-12 -left-12 w-64 h-64 border border-olive-200/40 rounded-full -z-10"
-          />
-          <div className="absolute -bottom-12 -left-4 w-32 h-32 bg-olive-50 rounded-full blur-2xl -z-10" />
-        </motion.div>
-
-        {/* Right Side: Editorial Text */}
+        {/* Right Side: Editorial Text (Original Content) */}
         <div className="relative">
 
           <div className="inline-flex items-center gap-2 mb-8">
