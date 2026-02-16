@@ -1,0 +1,32 @@
+<svg width="1200" height="800" viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f4f7f4"/>
+      <stop offset="100%" style="stop-color:#e6ebe5"/>
+    </linearGradient>
+    <linearGradient id="arch" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#a8bba6"/>
+      <stop offset="100%" style="stop-color:#7e9a7b"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="800" fill="url(#bg)"/>
+  <!-- Arched window -->
+  <path d="M200 800 L200 350 Q200 150 400 150 Q600 150 600 350 L600 800" fill="none" stroke="#cdd8cc" stroke-width="3"/>
+  <path d="M700 800 L700 400 Q700 250 850 250 Q1000 250 1000 400 L1000 800" fill="url(#arch)" opacity="0.3"/>
+  <!-- Furniture -->
+  <rect x="250" y="550" width="300" height="30" rx="15" fill="#546032" opacity="0.6"/>
+  <rect x="300" y="580" width="10" height="120" fill="#546032" opacity="0.4"/>
+  <rect x="490" y="580" width="10" height="120" fill="#546032" opacity="0.4"/>
+  <!-- Plant -->
+  <circle cx="150" cy="500" r="60" fill="#7e9a7b" opacity="0.4"/>
+  <circle cx="130" cy="470" r="40" fill="#5d7d5a" opacity="0.3"/>
+  <rect x="145" y="560" width="10" height="80" fill="#886c53" opacity="0.5"/>
+  <!-- Pendant light -->
+  <line x1="850" y1="0" x2="850" y2="200" stroke="#d5c8b3" stroke-width="2"/>
+  <ellipse cx="850" cy="210" rx="30" ry="20" fill="#d5c8b3"/>
+  <!-- Coffee cup -->
+  <rect x="760" y="560" width="50" height="40" rx="5" fill="#546032" opacity="0.7"/>
+  <ellipse cx="785" cy="558" rx="28" ry="8" fill="#f3efe8"/>
+  <!-- Text -->
+  <text x="600" y="770" text-anchor="middle" font-family="serif" font-size="24" fill="#546032" opacity="0.5">Thinkery Café Interior</text>
+</svg>

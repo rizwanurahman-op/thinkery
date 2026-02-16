@@ -1,26 +1,358 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@custom-variant dark (&:is(.dark *));
+
+
+
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: 'DM Sans', sans-serif;
+  --font-serif: 'Playfair Display', serif;
+  --font-heading: 'Playfair Display', serif;
   --font-mono: var(--font-geist-mono);
+
+  /* Thinkery Brand Colors */
+  /* Premium Organic Palette (Image Match) - Darker Cream Update */
+  --color-olive-50: #f4f6f0;
+  --color-olive-100: #e6ebe0;
+  --color-olive-200: #d0dcc5;
+  --color-olive-300: #b0c49e;
+  --color-olive-400: #8ea873;
+  --color-olive-500: #6d8a4f;
+  --color-olive-600: #546b3a;
+  /* Sofa Light */
+  --color-olive-700: #445630;
+  --color-olive-800: #384628;
+  /* Sofa Dark */
+  --color-olive-900: #2f3a23;
+  --color-olive-950: #192011;
+
+  /* Richer / Darker Cream Tones - Visible Beige Update */
+  --color-cream-50: #ece6d8;
+  /* Visible Beige / Oatmeal */
+  --color-cream-100: #ded3c1;
+  /* Beige / Latte */
+  --color-cream-200: #c4b092;
+  /* Light Bronze */
+  --color-cream-300: #b59e7c;
+  /* Warm Wood */
+  --color-cream-400: #a68c66;
+  --color-cream-500: #967d5b;
+  --color-cream-600: #8c7352;
+  --color-cream-700: #735d41;
+  --color-cream-800: #594732;
+  --color-cream-900: #403224;
+  --color-cream-950: #261e15;
+
+  /* Image-Specific Accents */
+  --color-wall: #ded3c1;
+  /* Matched to dark cream for immersive background */
+  --color-accent-sage: #bdcbbd;
+  /* Deeper sage */
+  --color-wood: #cfae8e;
+  /* Richer wood */
+
+  --color-sage-50: #f4f7f4;
+  --color-sage-100: #e6ebe5;
+  --color-sage-200: #cdd8cc;
+  --color-sage-300: #a8bba6;
+  --color-sage-400: #7e9a7b;
+  --color-sage-500: #5d7d5a;
+  --color-sage-600: #486446;
+  --color-sage-700: #3b5039;
+  --color-sage-800: #324131;
+  --color-sage-900: #2a362a;
+  --color-sage-950: #141d14;
+
+  --color-warm-50: #faf8f5;
+  --color-warm-100: #f3efe8;
+  --color-warm-200: #e8e0d3;
+  --color-warm-300: #d5c8b3;
+  --color-warm-400: #c0ab8f;
+  --color-warm-500: #b09575;
+  --color-warm-600: #a38364;
+  --color-warm-700: #886c53;
+  --color-warm-800: #6f5947;
+  --color-warm-900: #5c4a3d;
+  --color-warm-950: #312720;
+
+  --color-gold-50: #fbf9f0;
+  --color-gold-100: #f5f1dc;
+  --color-gold-200: #ebe0ba;
+  --color-gold-300: #dec68d;
+  --color-gold-400: #d0a860;
+  --color-gold-500: #c28e40;
+  --color-gold-600: #a77132;
+  --color-gold-700: #86552a;
+  --color-gold-800: #6f4528;
+  --color-gold-900: #5b3a24;
+  --color-gold-950: #341e12;
+
+
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+:root {
+  --radius: 0.625rem;
+  --background: #faf8f5;
+  --foreground: #2a362a;
+  --card: #ffffff;
+  --card-foreground: #2a362a;
+  --popover: #ffffff;
+  --popover-foreground: #2a362a;
+  --primary: #546032;
+  --primary-foreground: #faf8f5;
+  --secondary: #f4f7f4;
+  --secondary-foreground: #3b5039;
+  --muted: #f3efe8;
+  --muted-foreground: #6f5947;
+  --accent: #e6ebe5;
+  --accent-foreground: #3b5039;
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: #e8e0d3;
+  --input: #e8e0d3;
+  --ring: #7e9a7b;
+  --chart-1: #546032;
+  --chart-2: #5d7d5a;
+  --chart-3: #8b9a4e;
+  --chart-4: #a8b46b;
+  --chart-5: #b09575;
+  --sidebar: #f4f7f4;
+  --sidebar-foreground: #2a362a;
+  --sidebar-primary: #546032;
+  --sidebar-primary-foreground: #faf8f5;
+  --sidebar-accent: #e6ebe5;
+  --sidebar-accent-foreground: #3b5039;
+  --sidebar-border: #e8e0d3;
+  --sidebar-ring: #7e9a7b;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-heading);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 80px;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cdd8cc;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8bba6;
+}
+
+/* Animated gradient text */
+.gradient-text {
+  background: linear-gradient(135deg, #546032 0%, #5d7d5a 50%, #8b9a4e 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Glass morphism */
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.glass-premium {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(40px);
+  -webkit-backdrop-filter: blur(40px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.05);
+}
+
+/* Texture Premium */
+.bg-fluted {
+  background-image: repeating-linear-gradient(90deg,
+      transparent,
+      transparent 20px,
+      rgba(0, 0, 0, 0.03) 20px,
+      rgba(0, 0, 0, 0.03) 21px);
+}
+
+.bg-noise {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
+}
+
+/* Reveal animation */
+@keyframes reveal-up {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  0% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes scale-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-reveal-up {
+  animation: reveal-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.6s ease-out forwards;
+}
+
+.animate-scale-in {
+  animation: scale-in 0.5s ease-out forwards;
+}
+
+/* Stagger children animations */
+.stagger-children>* {
+  opacity: 0;
+  animation: reveal-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.stagger-children>*:nth-child(1) {
+  animation-delay: 0.1s;
+}
+
+.stagger-children>*:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.stagger-children>*:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+.stagger-children>*:nth-child(4) {
+  animation-delay: 0.4s;
+}
+
+.stagger-children>*:nth-child(5) {
+  animation-delay: 0.5s;
+}
+
+.stagger-children>*:nth-child(6) {
+  animation-delay: 0.6s;
+}
+
+/* Hero parallax image */
+.hero-image {
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-image::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom,
+      rgba(250, 248, 245, 0.3) 0%,
+      rgba(250, 248, 245, 0.1) 40%,
+      rgba(250, 248, 245, 0.6) 100%);
+}
+
+/* Arch shape decorative element */
+.arch-shape {
+  border-radius: 50% 50% 0 0;
+}
+
+/* Section divider with leaf */
+.section-divider {
+  position: relative;
+  text-align: center;
+}
+
+.section-divider::before {
+  content: '🌿';
+  display: block;
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
 }
