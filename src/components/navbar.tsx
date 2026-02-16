@@ -1,17 +1,18 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
+import { useState, useEffect, useCallback } from 'react';
 import { NAV_ITEMS } from '@/data';
 import { useScrollDirection } from '@/hooks';
 import { Menu, X } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 export function Navbar() {
     const pathname = usePathname();
+    const router = useRouter();
     const { scrollY } = useScrollDirection();
     const [isOpen, setIsOpen] = useState(false);
     const isScrolled = scrollY > 50;
@@ -22,6 +23,23 @@ export function Navbar() {
     useEffect(() => {
         setIsOpen(false);
     }, [pathname]);
+
+    // Smooth mobile navigation: close sheet first, then navigate
+    const handleMobileNav = useCallback((href: string) => {
+        // If already on this page, just close
+        if (pathname === href) {
+            setIsOpen(false);
+            return;
+        }
+
+        // Close the sheet first
+        setIsOpen(false);
+
+        // Navigate after the sheet close animation settles
+        setTimeout(() => {
+            router.push(href);
+        }, 350);
+    }, [pathname, router]);
 
     return (
         <header
@@ -139,16 +157,15 @@ export function Navbar() {
                                                 ease: [0.19, 1, 0.22, 1]
                                             }}
                                         >
-                                            <Link
-                                                href={item.href}
-                                                onClick={() => setIsOpen(false)}
-                                                className={`px-6 py-4 rounded-2xl text-xl font-serif block transition-all duration-300 ${pathname === item.href
+                                            <button
+                                                onClick={() => handleMobileNav(item.href)}
+                                                className={`w-full text-left px-6 py-4 rounded-2xl text-xl font-serif transition-all duration-300 ${pathname === item.href
                                                     ? 'bg-olive-900 text-cream-50 shadow-lg shadow-olive-900/10 translate-x-2 font-semibold'
-                                                    : 'text-olive-700 hover:bg-white/80 hover:shadow-md hover:translate-x-1'
+                                                    : 'text-olive-700 hover:bg-white/80 hover:shadow-md hover:translate-x-1 active:scale-[0.98]'
                                                     }`}
                                             >
                                                 {item.label}
-                                            </Link>
+                                            </button>
                                         </motion.div>
                                     ))}
                                 </div>
@@ -161,12 +178,10 @@ export function Navbar() {
                                     transition={{ duration: 1.1, delay: 0.6, ease: [0.19, 1, 0.22, 1] }}
                                 >
                                     <Button
-                                        asChild
+                                        onClick={() => handleMobileNav('/contact')}
                                         className="w-full h-14 bg-olive-900 hover:bg-olive-800 text-cream-50 rounded-2xl text-lg font-medium shadow-xl shadow-olive-900/10 transition-transform active:scale-95"
                                     >
-                                        <Link href="/contact" onClick={() => setIsOpen(false)}>
-                                            Visit Us
-                                        </Link>
+                                        Visit Us
                                     </Button>
                                     <p className="text-center text-olive-400 text-xs mt-6 uppercase tracking-widest font-medium">
                                         Calicut • Kerala
