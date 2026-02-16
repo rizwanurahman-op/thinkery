@@ -8,6 +8,7 @@ import { useScrollDirection } from '@/hooks';
 import { Menu, X } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export function Navbar() {
     const pathname = usePathname();
@@ -95,7 +96,11 @@ export function Navbar() {
                                 <Menu className="w-5 h-5" />
                             </button>
                         </SheetTrigger>
-                        <SheetContent side="right" className="w-[85vw] sm:w-[400px] bg-cream-50 border-l border-white/50 p-0 overflow-hidden">
+                        <SheetContent
+                            side="right"
+                            showCloseButton={false}
+                            className="w-[85vw] sm:w-[400px] bg-cream-50/95 backdrop-blur-xl border-l border-white/50 p-0 overflow-hidden"
+                        >
                             {/* Texture Overlay */}
                             <div className="absolute inset-0 bg-fluted opacity-[0.03] pointer-events-none" />
                             <div className="absolute inset-0 bg-noise opacity-[0.05] pointer-events-none" />
@@ -115,44 +120,58 @@ export function Navbar() {
                                     </div>
                                     <button
                                         onClick={() => setIsOpen(false)}
-                                        className="p-2 rounded-full hover:bg-olive-900/5 text-olive-900 transition-colors"
+                                        className="p-2.5 rounded-full hover:bg-olive-900/10 text-olive-900 transition-all duration-300 active:scale-90"
                                     >
                                         <X className="w-6 h-6" />
                                     </button>
                                 </div>
 
                                 {/* Mobile Nav Links */}
-                                <div className="flex flex-col p-8 gap-2">
+                                <div className="flex flex-col p-8 gap-3">
                                     {NAV_ITEMS.map((item, index) => (
-                                        <Link
+                                        <motion.div
                                             key={item.href}
-                                            href={item.href}
-                                            onClick={() => setIsOpen(false)}
-                                            style={{ transitionDelay: `${index * 50}ms` }}
-                                            className={`px-5 py-4 rounded-2xl text-lg font-serif transition-all duration-300 ${pathname === item.href
-                                                ? 'bg-olive-900 text-cream-50 shadow-lg shadow-olive-900/10 translate-x-2'
-                                                : 'text-olive-700 hover:bg-white hover:shadow-md hover:translate-x-1'
-                                                }`}
+                                            initial={{ opacity: 0, x: 50, scale: 0.95, filter: 'blur(4px)' }}
+                                            animate={isOpen ? { opacity: 1, x: 0, scale: 1, filter: 'blur(0px)' } : { opacity: 0, x: 50, scale: 0.95, filter: 'blur(4px)' }}
+                                            transition={{
+                                                duration: 1.1,
+                                                delay: 0.18 + index * 0.1,
+                                                ease: [0.19, 1, 0.22, 1]
+                                            }}
                                         >
-                                            {item.label}
-                                        </Link>
+                                            <Link
+                                                href={item.href}
+                                                onClick={() => setIsOpen(false)}
+                                                className={`px-6 py-4 rounded-2xl text-xl font-serif block transition-all duration-300 ${pathname === item.href
+                                                    ? 'bg-olive-900 text-cream-50 shadow-lg shadow-olive-900/10 translate-x-2 font-semibold'
+                                                    : 'text-olive-700 hover:bg-white/80 hover:shadow-md hover:translate-x-1'
+                                                    }`}
+                                            >
+                                                {item.label}
+                                            </Link>
+                                        </motion.div>
                                     ))}
                                 </div>
 
                                 {/* Mobile CTA */}
-                                <div className="mt-auto p-8 border-t border-olive-900/5 bg-white/40 backdrop-blur-sm">
+                                <motion.div
+                                    className="mt-auto p-8 border-t border-olive-900/5 bg-white/40 backdrop-blur-md"
+                                    initial={{ opacity: 0, y: 30, filter: 'blur(4px)' }}
+                                    animate={isOpen ? { opacity: 1, y: 0, filter: 'blur(0px)' } : { opacity: 0, y: 30, filter: 'blur(4px)' }}
+                                    transition={{ duration: 1.1, delay: 0.6, ease: [0.19, 1, 0.22, 1] }}
+                                >
                                     <Button
                                         asChild
-                                        className="w-full h-14 bg-olive-900 hover:bg-olive-800 text-cream-50 rounded-2xl text-lg font-medium shadow-xl shadow-olive-900/10"
+                                        className="w-full h-14 bg-olive-900 hover:bg-olive-800 text-cream-50 rounded-2xl text-lg font-medium shadow-xl shadow-olive-900/10 transition-transform active:scale-95"
                                     >
                                         <Link href="/contact" onClick={() => setIsOpen(false)}>
                                             Visit Us
                                         </Link>
                                     </Button>
-                                    <p className="text-center text-olive-400 text-xs mt-6 uppercase tracking-widest">
+                                    <p className="text-center text-olive-400 text-xs mt-6 uppercase tracking-widest font-medium">
                                         Calicut • Kerala
                                     </p>
-                                </div>
+                                </motion.div>
                             </div>
                         </SheetContent>
                     </Sheet>
