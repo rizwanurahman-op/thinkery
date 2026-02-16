@@ -735,7 +735,7 @@ function AudienceSection() {
       <div ref={ref} className="max-w-[90rem] mx-auto px-6 relative z-10">
 
         {/* Header - Editorial Style */}
-        <div className="flex flex-col md:flex-row justify-between items-end mb-24 gap-8">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-16 md:mb-24 gap-8">
           <div className="max-w-2xl">
             <div className="flex items-center gap-4 mb-6">
               <span className="h-px w-12 bg-cream-500/50"></span>
