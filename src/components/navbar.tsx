@@ -149,12 +149,12 @@ export function Navbar() {
                                     {NAV_ITEMS.map((item, index) => (
                                         <motion.div
                                             key={item.href}
-                                            initial={{ opacity: 0, x: 50, scale: 0.95, filter: 'blur(4px)' }}
-                                            animate={isOpen ? { opacity: 1, x: 0, scale: 1, filter: 'blur(0px)' } : { opacity: 0, x: 50, scale: 0.95, filter: 'blur(4px)' }}
+                                            initial={{ opacity: 0, x: 20 }}
+                                            animate={isOpen ? { opacity: 1, x: 0 } : { opacity: 0, x: 20 }}
                                             transition={{
-                                                duration: 1.1,
-                                                delay: 0.18 + index * 0.1,
-                                                ease: [0.19, 1, 0.22, 1]
+                                                duration: 0.5,
+                                                delay: 0.1 + index * 0.05,
+                                                ease: [0.22, 1, 0.36, 1]
                                             }}
                                         >
                                             <button
@@ -173,9 +173,9 @@ export function Navbar() {
                                 {/* Mobile CTA */}
                                 <motion.div
                                     className="mt-auto p-8 border-t border-olive-900/5 bg-white/40 backdrop-blur-md"
-                                    initial={{ opacity: 0, y: 30, filter: 'blur(4px)' }}
-                                    animate={isOpen ? { opacity: 1, y: 0, filter: 'blur(0px)' } : { opacity: 0, y: 30, filter: 'blur(4px)' }}
-                                    transition={{ duration: 1.1, delay: 0.6, ease: [0.19, 1, 0.22, 1] }}
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={isOpen ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+                                    transition={{ duration: 0.5, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
                                 >
                                     <Button
                                         onClick={() => handleMobileNav('/contact')}

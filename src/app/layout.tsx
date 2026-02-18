@@ -1,14 +1,16 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { DM_Sans, Playfair_Display } from 'next/font/google';
 import './globals.css';
 import { AppProvider } from '@/providers/app-provider';
 import { Navbar } from '@/components/navbar';
 import { Footer } from '@/components/footer';
+import { CONTACT_INFO } from '@/data';
 
 const dmSans = DM_Sans({
   subsets: ['latin'],
   variable: '--font-dm-sans',
   weight: ['300', '400', '500', '600', '700'],
+  display: 'swap',
 });
 
 const playfair = Playfair_Display({
@@ -16,12 +18,21 @@ const playfair = Playfair_Display({
   variable: '--font-playfair',
   weight: ['400', '500', '600', '700'],
   style: ['normal', 'italic'],
+  display: 'swap',
 });
+
+// ✅ Viewport exported separately — Next.js 14+ best practice, prevents metadata warnings
+export const viewport: Viewport = {
+  themeColor: '#2f3a23',
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5, // Allow zoom for accessibility (don't lock to 1)
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://thinkerycafe.in'),
   title: {
-    default: 'Thinkery – A Calm Café Space in Calicut',
+    default: 'Thinkery Café – A Calm Café Space in Calicut | Where Minds Meet',
     template: '%s | Thinkery Café, Calicut',
   },
   description:
@@ -31,37 +42,45 @@ export const metadata: Metadata = {
     'Best café in Calicut',
     'Work-friendly café in Calicut',
     'Quiet café for meetings',
-    'Coffee shop near me',
+    'Coffee shop near me Calicut',
     'Study café in Calicut',
     'Meeting café in Calicut',
     'Remote work café Calicut',
     'Calm café Kerala',
     'Thinkery café',
+    'Café Kozhikode',
+    'Work café Kozhikode',
   ],
-  authors: [{ name: 'Thinkery Café' }],
+  authors: [{ name: 'Thinkery Café', url: 'https://thinkerycafe.in' }],
   creator: 'Thinkery Café',
+  publisher: 'Thinkery Café',
+  alternates: {
+    canonical: 'https://thinkerycafe.in',
+  },
   openGraph: {
     type: 'website',
     locale: 'en_IN',
     url: 'https://thinkerycafe.in',
     siteName: 'Thinkery Café',
-    title: 'Thinkery – A Calm Café Space in Calicut | Where Minds Meet',
+    title: 'Thinkery Café – A Calm Café Space in Calicut | Where Minds Meet',
     description:
-      'A thoughtfully designed café for work, meetings, and meaningful conversations. Premium coffee, refreshing beverages, and light comfort food.',
+      'A thoughtfully designed café for work, meetings, and meaningful conversations. Premium coffee, refreshing beverages, and light comfort food in Calicut, Kerala.',
     images: [
       {
-        url: '/og-image.jpg',
+        url: '/opengraph-image',
         width: 1200,
         height: 630,
-        alt: 'Thinkery Café - A Calm Café Space in Calicut',
+        alt: 'Thinkery Café – A Calm, Work-Friendly Café in Calicut, Kerala',
+        type: 'image/png',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Thinkery – A Calm Café Space in Calicut',
+    title: 'Thinkery Café – A Calm Café Space in Calicut',
     description:
-      'A thoughtfully designed café for work, meetings, and meaningful conversations.',
+      'A thoughtfully designed café for work, meetings, and meaningful conversations. Premium coffee & light bites in Calicut, Kerala.',
+    images: ['/opengraph-image'],
   },
   robots: {
     index: true,
@@ -74,25 +93,25 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
-  verification: {
-    google: 'your-google-verification-code',
-  },
+  category: 'food & beverage',
 };
 
-// Local Business Schema Markup
+// ✅ Local Business JSON-LD Schema — linked to single source of truth
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'CafeOrCoffeeShop',
   name: 'Thinkery Café',
   description:
-    'A calm, work-friendly café in Calicut for focused work, meetings, and meaningful conversations.',
+    'A calm, work-friendly café in Calicut for focused work, meetings, and meaningful conversations. Premium coffee, teas, fresh juices, and light comfort food.',
   url: 'https://thinkerycafe.in',
-  telephone: '+91-XXXXX-XXXXX',
-  email: 'hello@thinkerycafe.in',
+  telephone: CONTACT_INFO.phone,
+  email: CONTACT_INFO.email,
+  logo: 'https://thinkerycafe.in/opengraph-image',
+  image: 'https://thinkerycafe.in/opengraph-image',
   address: {
     '@type': 'PostalAddress',
     streetAddress: 'Calicut',
-    addressLocality: 'Calicut',
+    addressLocality: 'Kozhikode',
     addressRegion: 'Kerala',
     postalCode: '673001',
     addressCountry: 'IN',
@@ -105,25 +124,27 @@ const jsonLd = {
   openingHoursSpecification: {
     '@type': 'OpeningHoursSpecification',
     dayOfWeek: [
-      'Monday',
-      'Tuesday',
-      'Wednesday',
-      'Thursday',
-      'Friday',
-      'Saturday',
-      'Sunday',
+      'Monday', 'Tuesday', 'Wednesday', 'Thursday',
+      'Friday', 'Saturday', 'Sunday',
     ],
     opens: '09:00',
     closes: '22:00',
   },
-  servesCuisine: ['Coffee', 'Tea', 'Snacks', 'Light Bites'],
+  servesCuisine: ['Coffee', 'Tea', 'Snacks', 'Light Bites', 'Juices', 'Milkshakes'],
   priceRange: '₹₹',
+  currenciesAccepted: 'INR',
+  paymentAccepted: 'Cash, Credit Card, UPI',
   amenityFeature: [
     { '@type': 'LocationFeatureSpecification', name: 'Wi-Fi', value: true },
     { '@type': 'LocationFeatureSpecification', name: 'Power Outlets', value: true },
     { '@type': 'LocationFeatureSpecification', name: 'Quiet Environment', value: true },
+    { '@type': 'LocationFeatureSpecification', name: 'Air Conditioning', value: true },
   ],
-  image: '/og-image.jpg',
+  hasMap: 'https://www.google.com/maps/search/Thinkery+Cafe+Calicut',
+  sameAs: [
+    'https://www.instagram.com/thinkerycafe',
+    'https://www.facebook.com/thinkerycafe',
+  ],
 };
 
 export default function RootLayout({
@@ -132,13 +153,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${dmSans.variable} ${playfair.variable}`}>
+    <html lang="en-IN" className={`${dmSans.variable} ${playfair.variable}`}>
       <head>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
-        <link rel="icon" href="/favicon.ico" />
+        {/* Preconnect to Google Fonts for faster font loading */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        {/* Favicon */}
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="apple-touch-icon" href="/favicon.ico" />
       </head>
       <body className="font-sans antialiased bg-warm-50 text-olive-900 min-h-screen flex flex-col">
         <AppProvider>

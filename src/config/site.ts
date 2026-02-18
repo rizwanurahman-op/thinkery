@@ -3,7 +3,7 @@ export const siteConfig = {
     tagline: 'A Calm Café Space in Calicut',
     description: 'A thoughtfully designed café for work, meetings, and meaningful conversations.',
     url: 'https://thinkerycafe.in',
-    ogImage: '/og-image.jpg',
+    ogImage: '/opengraph-image',
     links: {
         instagram: '#',
         facebook: '#',

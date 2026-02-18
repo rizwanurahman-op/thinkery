@@ -1,7 +1,6 @@
 'use client';
 
-import { motion, useInView, Variant } from 'framer-motion';
-import { useRef, useMemo } from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
 interface TextRevealProps {
@@ -11,71 +10,70 @@ interface TextRevealProps {
     duration?: number;
     threshold?: number;
     once?: boolean;
-    blur?: boolean;
-    scale?: boolean;
     yOffset?: number;
     as?: React.ElementType;
-    staggerChildren?: number;
-    staggerDirection?: 1 | -1;
 }
+
+// ✅ Pre-built motion component map — defined OUTSIDE component to avoid recreation on every render
+const MOTION_ELEMENTS = {
+    div: motion.div,
+    p: motion.p,
+    h1: motion.h1,
+    h2: motion.h2,
+    h3: motion.h3,
+    h4: motion.h4,
+    h5: motion.h5,
+    h6: motion.h6,
+    span: motion.span,
+    section: motion.section,
+    article: motion.article,
+    blockquote: motion.blockquote,
+    ul: motion.ul,
+    li: motion.li,
+} as const;
+
+type MotionElementKey = keyof typeof MOTION_ELEMENTS;
 
 export function TextReveal({
     children,
     className,
     delay = 0,
-    duration = 0.8,
-    threshold = 0.2,
+    duration = 0.65,
+    threshold = 0.1,
     once = true,
-    blur = true,
-    scale = false,
-    yOffset = 20,
+    yOffset = 22,
     as: Component = 'div',
-    staggerChildren = 0.05,
-    staggerDirection = 1,
 }: TextRevealProps) {
-    const ref = useRef(null);
-    const isInView = useInView(ref, { once, amount: threshold });
+    // ✅ Respect user's accessibility preference — no animation if they prefer reduced motion
+    const prefersReducedMotion = useReducedMotion();
 
-    const variants: { [key: string]: Variant } = {
-        hidden: {
-            opacity: 0,
-            y: yOffset,
-            scale: scale ? 0.95 : 1,
-            filter: blur ? 'blur(8px)' : 'blur(0px)',
-            transition: {
-                duration: duration,
-                ease: [0.22, 1, 0.36, 1],
-            }
-        },
-        visible: {
-            opacity: 1,
-            y: 0,
-            scale: 1,
-            filter: 'blur(0px)',
-            transition: {
-                duration: duration,
-                delay: delay,
-                ease: [0.22, 1, 0.36, 1],
-                staggerChildren: staggerChildren,
-                staggerDirection: staggerDirection,
-            }
-        },
-    };
+    // ✅ Resolve the correct motion component from the pre-built map
+    const MotionComponent = (
+        typeof Component === 'string' && Component in MOTION_ELEMENTS
+            ? MOTION_ELEMENTS[Component as MotionElementKey]
+            : motion.div
+    ) as React.ElementType;
 
-    const MotionComponent = useMemo(() => {
-        if (typeof Component === 'string' && (motion as any)[Component]) {
-            return (motion as any)[Component];
-        }
-        return motion(Component as any);
-    }, [Component]);
+    // ✅ If user prefers reduced motion, render a plain element with no animation
+    if (prefersReducedMotion) {
+        const Tag = Component as React.ElementType;
+        return <Tag className={cn(className)}>{children}</Tag>;
+    }
 
     return (
         <MotionComponent
-            ref={ref}
             className={cn(className)}
-            initial="hidden"
-            animate={isInView ? "visible" : "hidden"}
-            variants={variants}
+            // ✅ SEO note: content IS in the DOM (Google reads it), just visually offset.
+            // whileInView is the correct Framer Motion pattern for scroll animations.
+            // It animates IN when the element enters the viewport, and stays visible after.
+            initial={{ opacity: 0, y: yOffset }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once, amount: threshold }}
+            transition={{
+                duration,
+                delay,
+                ease: [0.22, 1, 0.36, 1],
+            }}
         >
             {children}
         </MotionComponent>

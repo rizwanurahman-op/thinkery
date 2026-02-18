@@ -185,10 +185,16 @@
   }
 }
 
-/* Smooth scrolling */
+/* Smooth scrolling — respects reduced motion preference */
 html {
   scroll-behavior: smooth;
   scroll-padding-top: 80px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 }
 
 /* Custom scrollbar */
@@ -373,4 +379,104 @@ html {
 .menu-card-appear {
   animation: menu-card-appear 0.5s ease-out forwards;
   animation-delay: inherit;
+}
+
+/* ✅ CSS blob animations — replaces Framer Motion repeat:Infinity (GPU-accelerated) */
+@keyframes blob-float {
+
+  0%,
+  100% {
+    transform: translate(-50%, 0) scale(1);
+    opacity: 0.5;
+  }
+
+  50% {
+    transform: translate(-50%, -20px) scale(1.08);
+    opacity: 0.8;
+  }
+}
+
+@keyframes blob-float-alt {
+
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.2;
+  }
+
+  50% {
+    transform: scale(1.15);
+    opacity: 0.4;
+  }
+}
+
+.animate-blob-slow {
+  animation: blob-float-alt 10s ease-in-out infinite;
+}
+
+.animate-blob-slow-delayed {
+  animation: blob-float-alt 12s ease-in-out infinite;
+  animation-delay: 2s;
+}
+
+/* Bounce slow for floating icons */
+@keyframes bounce-slow {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-12px);
+  }
+}
+
+.animate-bounce-slow {
+  animation: bounce-slow 3s ease-in-out infinite;
+}
+
+/* Scroll down indicator */
+@keyframes scroll-down {
+  0% {
+    transform: translateY(-100%);
+  }
+
+  100% {
+    transform: translateY(200%);
+  }
+}
+
+.animate-scroll-down {
+  animation: scroll-down 1.5s ease-in-out infinite;
+}
+
+/* Pulse slow */
+@keyframes pulse-slow {
+
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+
+  50% {
+    opacity: 0.6;
+  }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 4s ease-in-out infinite;
+}
+
+/* ✅ Accessibility: Disable all animations for users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

@@ -1,8 +1,8 @@
 import Link from 'next/link';
 import { NAV_ITEMS, CONTACT_INFO } from '@/data';
-import { Separator } from '@/components/ui/separator';
 
 export function Footer() {
+    // ✅ suppressHydrationWarning used on the year span to prevent SSR/client mismatch
     const currentYear = new Date().getFullYear();
 
     return (
@@ -76,15 +76,20 @@ export function Footer() {
                         </p>
                         {/* Social Links */}
                         <div className="flex gap-4">
-                            {['Instagram', 'Facebook', 'Twitter'].map((social) => (
+                            {[
+                                { name: 'Instagram', href: 'https://www.instagram.com/thinkerycafe' },
+                                { name: 'Facebook', href: 'https://www.facebook.com/thinkerycafe' },
+                            ].map((social) => (
                                 <a
-                                    key={social}
-                                    href="#"
-                                    aria-label={social}
+                                    key={social.name}
+                                    href={social.href}
+                                    aria-label={`Follow Thinkery Café on ${social.name}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
                                     className="w-10 h-10 rounded-full bg-cream-50/5 border border-white/5 flex items-center justify-center hover:bg-cream-50 hover:text-olive-900 text-cream-100 transition-all duration-300 hover:-translate-y-1"
                                 >
-                                    <span className="text-xs font-medium uppercase tracking-wider">
-                                        {social[0]}
+                                    <span className="text-xs font-medium uppercase tracking-wider" aria-hidden="true">
+                                        {social.name[0]}
                                     </span>
                                 </a>
                             ))}
@@ -154,16 +159,16 @@ export function Footer() {
             <div className="border-t border-olive-800">
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6">
                     <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                        <p className="text-olive-400 text-xs">
+                        <p className="text-olive-400 text-xs" suppressHydrationWarning>
                             © {currentYear} Thinkery Café, Calicut. All rights reserved.
                         </p>
                         <div className="flex items-center gap-4 text-xs text-olive-400">
-                            <a href="#" className="hover:text-olive-200 transition-colors">
+                            <Link href="/privacy" className="hover:text-olive-200 transition-colors">
                                 Privacy Policy
-                            </a>
-                            <a href="#" className="hover:text-olive-200 transition-colors">
+                            </Link>
+                            <Link href="/terms" className="hover:text-olive-200 transition-colors">
                                 Terms of Service
-                            </a>
+                            </Link>
                         </div>
                     </div>
                 </div>

@@ -2,10 +2,11 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowRight, Coffee, Leaf, Users, Heart, Star, Clock, MapPin } from 'lucide-react';
+import { ArrowRight, Leaf } from 'lucide-react';
 import { Section } from '@/components/ui/section';
-import { useInView } from '@/hooks';
 import { Button } from '@/components/ui/button';
+import { TextReveal } from '@/components/ui/text-reveal';
+import { motion } from 'framer-motion';
 
 const VALUES = [
     {
@@ -41,15 +42,19 @@ const VALUES = [
 ];
 
 function StorySection() {
-    const { ref, isInView } = useInView();
-
     return (
         <Section className="py-24 lg:py-40 relative z-20 -mt-20 overflow-hidden">
-            <div ref={ref} className="container mx-auto px-4">
+            <div className="container mx-auto px-4">
                 <div className="grid lg:grid-cols-2 gap-16 lg:gap-24 items-center">
 
-                    {/* Visual Side (Arch Image - Similar to Work Page) */}
-                    <div className={`relative order-2 lg:order-1 transition-all duration-1000 ${isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'}`}>
+                    {/* Visual Side (Arch Image) */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 40 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.8 }}
+                        className="relative order-2 lg:order-1"
+                    >
                         {/* Decorative Circle Behind */}
                         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-olive-50 rounded-full blur-3xl -z-10" />
 
@@ -86,29 +91,31 @@ function StorySection() {
                         <div className="absolute -top-12 -left-8 w-24 h-24 bg-white rounded-full shadow-xl flex items-center justify-center animate-bounce-slow hidden lg:flex border border-olive-50">
                             <Leaf className="w-8 h-8 text-olive-600" />
                         </div>
-                    </div>
+                    </motion.div>
 
                     {/* Content Side */}
-                    <div className={`order-1 lg:order-2 transition-all duration-1000 delay-200 ${isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'}`}>
-                        <div className="mb-6 inline-block">
+                    <div className="order-1 lg:order-2">
+                        <TextReveal as="div" className="mb-6 inline-block">
                             <span className="text-gold-600 font-serif italic text-2xl">The Origin</span>
-                        </div>
+                        </TextReveal>
 
-                        <h2 className="text-5xl md:text-6xl lg:text-7xl font-serif text-olive-950 leading-[1.05] mb-8">
+                        <TextReveal as="h2" delay={0.1} className="text-5xl md:text-6xl lg:text-7xl font-serif text-olive-950 leading-[1.05] mb-8">
                             Built for <br />
                             <span className="text-olive-500">thinkers &</span> <br />
                             dreamers.
-                        </h2>
+                        </TextReveal>
 
-                        <div className="h-px w-24 bg-gold-400 mb-8" />
+                        <TextReveal as="div" delay={0.2} className="h-px w-24 bg-gold-400 mb-8">
+                            <span />
+                        </TextReveal>
 
                         <div className="space-y-6 text-olive-900/80 font-light leading-relaxed text-lg md:text-xl mb-12">
-                            <p>
+                            <TextReveal as="p" delay={0.3}>
                                 In today&apos;s fast-moving world, finding a quiet place to think or work is difficult. Homes are distracting, and most cafés are crowded and loud.
-                            </p>
-                            <p>
+                            </TextReveal>
+                            <TextReveal as="p" delay={0.4}>
                                 <strong className="text-olive-950 font-medium border-b-2 border-gold-300">Thinkery</strong> was created to bridge this gap — a café that supports productivity, meaningful conversations, and calm experiences.
-                            </p>
+                            </TextReveal>
                         </div>
 
                         {/* Elegant Timeline List */}
@@ -118,7 +125,7 @@ function StorySection() {
                                 { title: 'The Design', desc: 'Inspired by minimal Scandinavian aesthetics.', icon: '🎨' },
                                 { title: 'The Launch', desc: 'Opening our doors to Calicut\'s creators.', icon: '🚀' },
                             ].map((item, idx) => (
-                                <div key={item.title} className="flex items-start gap-4 group cursor-default p-4 rounded-2xl hover:bg-olive-50 transition-colors duration-300">
+                                <TextReveal key={item.title} as="div" delay={0.5 + (idx * 0.1)} className="flex items-start gap-4 group cursor-default p-4 rounded-2xl hover:bg-olive-50 transition-colors duration-300">
                                     <div className="w-10 h-10 rounded-full bg-cream-100 flex items-center justify-center text-xl shadow-sm group-hover:scale-110 transition-transform duration-300">
                                         {item.icon}
                                     </div>
@@ -130,7 +137,7 @@ function StorySection() {
                                             {item.desc}
                                         </p>
                                     </div>
-                                </div>
+                                </TextReveal>
                             ))}
                         </div>
                     </div>
@@ -141,39 +148,36 @@ function StorySection() {
 }
 
 function VisionSection() {
-    const { ref, isInView } = useInView();
-
     return (
         <Section className="bg-olive-950 py-24 lg:py-32 relative overflow-hidden">
             {/* Background Effects */}
             <div className="absolute top-0 left-0 w-full h-[500px] bg-gradient-to-b from-black/20 to-transparent pointer-events-none" />
             <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-olive-900/40 rounded-full blur-[120px] translate-x-1/3 translate-y-1/3 pointer-events-none" />
-            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.03] pointer-events-none mix-blend-overlay" />
+            <div className="absolute inset-0 bg-fluted opacity-[0.03] pointer-events-none mix-blend-overlay" />
 
-            <div ref={ref} className={`mb-16 md:mb-24 text-center max-w-3xl mx-auto px-4 transition-all duration-1000 ${isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'}`}>
-                <div className="inline-block mb-4">
+            <div className="mb-16 md:mb-24 text-center max-w-3xl mx-auto px-4">
+                <TextReveal as="div" className="inline-block mb-4">
                     <span className="py-1 px-3 rounded-full border border-gold-500/30 bg-gold-500/10 text-gold-300 text-[10px] uppercase tracking-[0.2em] font-bold backdrop-blur-sm">
                         Our Vision
                     </span>
-                </div>
-                <h2 className="text-4xl md:text-5xl lg:text-6xl font-serif text-cream-50 leading-tight mb-6">
+                </TextReveal>
+                <TextReveal as="h2" delay={0.1} className="text-4xl md:text-5xl lg:text-6xl font-serif text-cream-50 leading-tight mb-6">
                     A Café Culture That <br />
                     <span className="text-transparent bg-clip-text bg-gradient-to-r from-gold-200 to-gold-500 italic">Values Excellence.</span>
-                </h2>
-                <p className="text-white/60 text-lg font-light leading-relaxed">
+                </TextReveal>
+                <TextReveal as="p" delay={0.2} className="text-white/60 text-lg font-light leading-relaxed">
                     Our goal is to grow Thinkery into a trusted and scalable brand that promotes focus, quality, and community.
-                </p>
+                </TextReveal>
             </div>
 
             {/* Grid - Dark Premium Cards */}
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 max-w-6xl mx-auto px-4 relative z-10">
                 {VALUES.map((value, index) => (
-                    <div
+                    <TextReveal
+                        as="div"
                         key={value.title}
-                        className={`group p-8 lg:p-10 rounded-[2.5rem] bg-white/5 border border-white/10 hover:bg-white/10 hover:border-gold-500/30 transition-all duration-500 hover:shadow-[0_0_40px_-10px_rgba(234,179,8,0.1)] hover:-translate-y-1 backdrop-blur-sm ${isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'}
-                        ${index === 0 || index === 4 ? 'lg:col-span-2' : ''}
-                        `}
-                        style={{ transitionDelay: `${index * 150}ms` }}
+                        delay={0.2 + (index * 0.1)}
+                        className={`group p-8 lg:p-10 rounded-[2.5rem] bg-white/5 border border-white/10 hover:bg-white/10 hover:border-gold-500/30 transition-all duration-500 hover:shadow-[0_0_40px_-10px_rgba(234,179,8,0.1)] hover:-translate-y-1 backdrop-blur-sm ${index === 0 || index === 4 ? 'lg:col-span-2' : ''}`}
                     >
                         <div className="flex flex-col h-full justify-between min-h-[250px]">
                             {/* Icon Header */}
@@ -196,7 +200,7 @@ function VisionSection() {
                                 </p>
                             </div>
                         </div>
-                    </div>
+                    </TextReveal>
                 ))}
             </div>
         </Section>
@@ -204,27 +208,25 @@ function VisionSection() {
 }
 
 function QuoteSection() {
-    const { ref, isInView } = useInView();
-
     return (
         <Section className="py-24 lg:py-32 overflow-hidden bg-cream-50">
             <div className="container mx-auto px-4">
-                <div ref={ref} className={`relative max-w-5xl mx-auto text-center px-4 transition-all duration-1000 ${isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'}`}>
+                <div className="relative max-w-5xl mx-auto text-center px-4">
 
                     {/* Floating Texture Behind */}
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140%] h-[140%] opacity-5 mix-blend-multiply pointer-events-none bg-[url('/images/noise.png')] bg-repeat" />
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140%] h-[140%] opacity-5 mix-blend-multiply pointer-events-none bg-noise" />
 
                     <div className="relative z-10">
-                        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-olive-50 border border-olive-100 mb-12">
+                        <TextReveal as="div" className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-olive-50 border border-olive-100 mb-12">
                             <span className="text-olive-600 text-[10px] uppercase tracking-[0.2em] font-bold">Philosophy</span>
-                        </div>
+                        </TextReveal>
 
-                        <blockquote className="text-4xl md:text-6xl lg:text-8xl font-serif text-olive-950 leading-[0.95] mb-16 tracking-tighter">
+                        <TextReveal as="blockquote" delay={0.1} className="text-4xl md:text-6xl lg:text-8xl font-serif text-olive-950 leading-[0.95] mb-16 tracking-tighter">
                             &ldquo;Good ideas need <br />
                             <span className="italic text-gold-600">good environments.&rdquo;</span>
-                        </blockquote>
+                        </TextReveal>
 
-                        <div className="flex flex-col md:flex-row items-center justify-center gap-6">
+                        <TextReveal as="div" delay={0.3} className="flex flex-col md:flex-row items-center justify-center gap-6">
                             <Button
                                 asChild
                                 size="lg"
@@ -246,11 +248,17 @@ function QuoteSection() {
                                     Visit Us
                                 </Link>
                             </Button>
-                        </div>
+                        </TextReveal>
 
-                        <div className="mt-20 flex justify-center opacity-40">
+                        <motion.div
+                            initial={{ scaleY: 0 }}
+                            whileInView={{ scaleY: 1 }}
+                            transition={{ duration: 1.5, ease: "circOut" }}
+                            viewport={{ once: true }}
+                            className="mt-20 flex justify-center opacity-40 origin-top"
+                        >
                             <div className="h-24 w-px bg-gradient-to-b from-olive-400 to-transparent" />
-                        </div>
+                        </motion.div>
                     </div>
                 </div>
             </div>
@@ -264,56 +272,59 @@ export function AboutContent() {
             {/* Ultra-Premium Poster Hero */}
             <section className="relative min-h-[70vh] flex items-center justify-center overflow-hidden bg-olive-50/50 pt-32 pb-20">
                 {/* Background Texture */}
-                <div className="absolute inset-0 opacity-40 mix-blend-multiply pointer-events-none bg-[url('/images/noise.png')] bg-repeat" />
+                <div className="absolute inset-0 opacity-40 mix-blend-multiply pointer-events-none bg-noise" />
 
-                {/* Animated Gradient Meshes - Reduced size to prevent overflow spill */}
+                {/* Animated Gradient Meshes */}
                 <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-gradient-to-br from-olive-200/30 to-transparent rounded-full blur-[100px] animate-pulse-slow" />
                 <div className="absolute bottom-[-10%] right-[-5%] w-[500px] h-[500px] bg-gold-200/20 rounded-full blur-[80px]" />
 
                 <div className="relative z-10 container mx-auto px-4 text-center">
                     {/* Top Label */}
-                    <div className="mb-6 animate-fade-in opacity-0" style={{ animationDelay: '0.1s' }}>
+                    <TextReveal as="div" className="mb-6">
                         <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full border border-olive-900/10 bg-white/40 backdrop-blur-md shadow-sm">
                             <span className="w-2 h-2 rounded-full bg-gold-500 animate-pulse" />
                             <span className="text-olive-900 text-[11px] uppercase tracking-[0.25em] font-bold">
                                 Est. 2026 • Calicut
                             </span>
                         </div>
-                    </div>
+                    </TextReveal>
 
                     {/* Main Title Block */}
                     <div className="relative mb-10">
                         <h1 className="leading-[0.9] text-olive-950 font-serif">
-                            <div className="overflow-hidden">
-                                <span className="block text-3xl md:text-5xl lg:text-5xl font-light tracking-widest uppercase mb-4 animate-reveal-up opacity-0 text-olive-600" style={{ animationDelay: '0.2s' }}>
+                            <TextReveal as="div" delay={0.1} className="overflow-hidden mb-4">
+                                <span className="block text-3xl md:text-5xl lg:text-5xl font-light tracking-widest uppercase text-olive-600">
                                     The Thinkery
                                 </span>
-                            </div>
-                            <div className="overflow-hidden">
-                                {/* Responsive max width to prevent text overflow on mobile */}
-                                <span className="block text-[12vw] md:text-[8rem] lg:text-[10rem] font-medium tracking-tighter mix-blend-darken animate-reveal-up opacity-0 break-words" style={{ animationDelay: '0.4s' }}>
+                            </TextReveal>
+                            <TextReveal as="div" delay={0.2} className="overflow-hidden">
+                                <span className="block text-[12vw] md:text-[8rem] lg:text-[10rem] font-medium tracking-tighter mix-blend-darken break-words">
                                     STORY
                                 </span>
-                            </div>
-                            <div className="overflow-hidden -mt-2 md:-mt-4 lg:-mt-8">
-                                <span className="block text-4xl md:text-6xl lg:text-7xl font-serif italic text-gold-500 animate-reveal-up opacity-0" style={{ animationDelay: '0.6s' }}>
+                            </TextReveal>
+                            <TextReveal as="div" delay={0.3} className="overflow-hidden -mt-2 md:-mt-4 lg:-mt-8">
+                                <span className="block text-4xl md:text-6xl lg:text-7xl font-serif italic text-gold-500">
                                     & Vision
                                 </span>
-                            </div>
+                            </TextReveal>
                         </h1>
                     </div>
 
-                    <p className="text-olive-800/80 text-lg md:text-2xl max-w-2xl mx-auto font-light leading-relaxed mb-16 animate-fade-in opacity-0 px-4" style={{ animationDelay: '0.8s' }}>
+                    <TextReveal as="p" delay={0.4} className="text-olive-800/80 text-lg md:text-2xl max-w-2xl mx-auto font-light leading-relaxed mb-16 px-4">
                         In a world that never slows down, we created a sanctuary that does. <br className="hidden md:block" />
                         A place where <strong className="font-medium text-olive-900">focus</strong> meets <strong className="font-medium text-olive-900">community</strong>.
-                    </p>
+                    </TextReveal>
 
                     {/* Scroll Indicator */}
-                    <div className="animate-fade-in opacity-0" style={{ animationDelay: '1s' }}>
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 1, duration: 1 }}
+                    >
                         <div className="w-[1px] h-24 bg-gradient-to-b from-olive-300 to-transparent mx-auto relative overflow-hidden">
                             <div className="absolute top-0 left-0 w-full h-1/2 bg-olive-900 animate-scroll-down" />
                         </div>
-                    </div>
+                    </motion.div>
                 </div>
             </section>
 
@@ -323,3 +334,4 @@ export function AboutContent() {
         </div>
     );
 }
+
