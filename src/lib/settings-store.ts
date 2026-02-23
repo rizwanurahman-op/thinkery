@@ -1,7 +1,8 @@
-import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { join } from 'path';
+import { readDataSync, readData, writeData } from '@/lib/data-store';
 
-const SETTINGS_PATH = join(process.cwd(), 'src', 'data', 'settings.json');
+const LOCAL_PATH = join(process.cwd(), 'src', 'data', 'settings.json');
+const BLOB_KEY = 'thinkery/settings.json';
 
 // ─── Offerings Section Config ───
 
@@ -145,18 +146,15 @@ function migrateCard(
 }
 
 export function readSettings(): SiteSettings {
-    if (!existsSync(SETTINGS_PATH)) {
-        writeFileSync(SETTINGS_PATH, JSON.stringify(DEFAULT_SETTINGS, null, 2), 'utf-8');
-        return DEFAULT_SETTINGS;
-    }
     try {
-        const raw = readFileSync(SETTINGS_PATH, 'utf-8');
-        const parsed = JSON.parse(raw) as Record<string, unknown>;
+        const raw = readDataSync<Record<string, unknown>>(LOCAL_PATH, {});
+        if (!raw || Object.keys(raw).length === 0) return DEFAULT_SETTINGS;
+
+        const parsed = raw;
         const section = (parsed.offeringsSection ?? {}) as Record<string, unknown>;
         const bevRaw = (section.beverageCard ?? {}) as Record<string, unknown>;
         const foodRaw = (section.foodCard ?? {}) as Record<string, unknown>;
 
-        // We need a list of all category IDs for migration; use defaults as fallback
         const defaultBevIds = DEFAULT_SETTINGS.offeringsSection.beverageCard.categoryIds;
         const defaultFoodIds = DEFAULT_SETTINGS.offeringsSection.foodCard.categoryIds;
         const allDefaultIds = [...defaultBevIds, ...defaultFoodIds];
@@ -168,7 +166,6 @@ export function readSettings(): SiteSettings {
         const bevIds = bevCard.categoryIds;
         const foodCard = migrateCard(foodRaw, DEFAULT_SETTINGS.offeringsSection.foodCard, allDefaultIds, bevIds);
 
-        // Merge saved pageImages with defaults (so new fields added in future are still populated)
         const savedPageImages = (parsed.pageImages ?? {}) as Record<string, unknown>;
         const mergedPageImages: PageImages = {
             heroMain: { ...DEFAULT_PAGE_IMAGES.heroMain, ...(savedPageImages.heroMain as object ?? {}) },
@@ -187,7 +184,6 @@ export function readSettings(): SiteSettings {
                 beverageCard: bevCard,
                 foodCard: foodCard,
             },
-            // Migrate: if galleryImages missing, fall back to defaults (empty URLs = use static fallbacks)
             galleryImages: Array.isArray(parsed.galleryImages)
                 ? (parsed.galleryImages as GalleryImage[])
                 : DEFAULT_SETTINGS.galleryImages,
@@ -198,8 +194,9 @@ export function readSettings(): SiteSettings {
     }
 }
 
-export function writeSettings(updates: Partial<SiteSettings>): SiteSettings {
-    const current = readSettings();
+export async function writeSettings(updates: Partial<SiteSettings>): Promise<SiteSettings> {
+    // For write operations, always read from the universal store (async) to get latest data
+    const current = await readData<SiteSettings>(LOCAL_PATH, BLOB_KEY, DEFAULT_SETTINGS);
     const next: SiteSettings = {
         ...current,
         ...updates,
@@ -218,6 +215,6 @@ export function writeSettings(updates: Partial<SiteSettings>): SiteSettings {
             }
             : current.offeringsSection,
     };
-    writeFileSync(SETTINGS_PATH, JSON.stringify(next, null, 2), 'utf-8');
+    await writeData<SiteSettings>(LOCAL_PATH, BLOB_KEY, next);
     return next;
 }

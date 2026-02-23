@@ -26,7 +26,7 @@ export async function PUT(request: NextRequest) {
     }
     try {
         const body = await request.json();
-        const updated = writeSettings(body);
+        const updated = await writeSettings(body);
         // Revalidate public pages so gallery/settings changes appear immediately
         revalidatePath('/');
         revalidatePath('/menu');

@@ -15,7 +15,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
         const body = await request.json();
 
         // If the image is being replaced, delete the old one from Cloudinary
-        const existing = getItemById(id);
+        const existing = await getItemById(id);
         if (
             existing?.imagePublicId &&
             body.imagePublicId &&
@@ -24,9 +24,8 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
             await deleteFromCloudinary(existing.imagePublicId);
         }
 
-        const updated = updateItem(id, body);
+        const updated = await updateItem(id, body);
 
-        // Revalidate public pages so sort order changes appear immediately
         revalidatePath('/');
         revalidatePath('/menu');
 
@@ -47,14 +46,13 @@ export async function DELETE(_request: NextRequest, { params }: RouteParams) {
         const { id } = await params;
 
         // Delete image from Cloudinary before removing item from store
-        const item = getItemById(id);
+        const item = await getItemById(id);
         if (item?.imagePublicId) {
             await deleteFromCloudinary(item.imagePublicId);
         }
 
-        deleteItem(id);
+        await deleteItem(id);
 
-        // Revalidate public pages so deleted items disappear immediately
         revalidatePath('/');
         revalidatePath('/menu');
 

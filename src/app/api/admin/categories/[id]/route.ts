@@ -12,9 +12,8 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     try {
         const { id } = await params;
         const body = await request.json();
-        const updated = updateCategory(id, body);
+        const updated = await updateCategory(id, body);
 
-        // Revalidate public pages so category sort order changes appear immediately
         revalidatePath('/');
         revalidatePath('/menu');
 
@@ -33,9 +32,8 @@ export async function DELETE(_request: NextRequest, { params }: RouteParams) {
     }
     try {
         const { id } = await params;
-        deleteCategory(id);
+        await deleteCategory(id);
 
-        // Revalidate public pages so deleted categories disappear immediately
         revalidatePath('/');
         revalidatePath('/menu');
 

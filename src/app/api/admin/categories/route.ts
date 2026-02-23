@@ -9,7 +9,7 @@ export async function GET() {
         return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
     try {
-        const categories = getAllCategories();
+        const categories = await getAllCategories();
         return NextResponse.json({ success: true, data: categories });
     } catch (error) {
         return NextResponse.json(
@@ -34,14 +34,13 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const category = createCategory({
+        const category = await createCategory({
             id: id.toLowerCase().replace(/\s+/g, '-'),
             label,
             icon: icon || '📋',
             sortOrder: sortOrder ?? 999,
         });
 
-        // Revalidate public pages so new category appears immediately
         revalidatePath('/');
         revalidatePath('/menu');
 

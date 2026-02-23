@@ -9,7 +9,7 @@ export async function GET() {
         return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
     try {
-        const items = getAllItems();
+        const items = await getAllItems();
         return NextResponse.json({ success: true, data: items });
     } catch (error) {
         return NextResponse.json(
@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const item = createItem({
+        const item = await createItem({
             id: body.id || `item-${Date.now()}`,
             name: body.name,
             description: body.description || '',
@@ -47,7 +47,6 @@ export async function POST(request: NextRequest) {
             sortOrder: body.sortOrder ?? 999,
         });
 
-        // Revalidate public pages so sort order / new items appear immediately
         revalidatePath('/');
         revalidatePath('/menu');
 
