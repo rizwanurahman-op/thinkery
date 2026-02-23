@@ -1,0 +1,104 @@
+{
+  "showPrices": false,
+  "offeringsSection": {
+    "badge": "Savor the Moment",
+    "heading": "Simple. Fresh.",
+    "headingItalic": "Comforting.",
+    "quote": "Fuel for your best ideas.",
+    "beverageCard": {
+      "sectionLabel": "The Brew Bar",
+      "title": "Liquid Inspiration",
+      "categoryIds": [
+        "hot-beverages",
+        "cold-beverages",
+        "mnmnnmnm"
+      ],
+      "maxItems": 5
+    },
+    "foodCard": {
+      "sectionLabel": "The Kitchen",
+      "title": "Nourishment",
+      "categoryIds": [
+        "snacks"
+      ],
+      "maxItems": 5
+    }
+  },
+  "galleryImages": [
+    {
+      "url": "https://res.cloudinary.com/dyhae5lts/image/upload/v1771651718/calm-cafe/gallery/gallery-entrance.webp",
+      "publicId": "calm-cafe/gallery/gallery-entrance",
+      "label": "The Entrance",
+      "alt": "Thinkery Café minimal archway entrance in Calicut"
+    },
+    {
+      "url": "https://res.cloudinary.com/dyhae5lts/image/upload/v1771651719/calm-cafe/gallery/gallery-lounge.webp",
+      "publicId": "calm-cafe/gallery/gallery-lounge",
+      "label": "Main Lounge",
+      "alt": "Green-inspired minimal interior seating at Thinkery Café"
+    },
+    {
+      "url": "https://res.cloudinary.com/dyhae5lts/image/upload/v1771651720/calm-cafe/gallery/gallery-bar.webp",
+      "publicId": "calm-cafe/gallery/gallery-bar",
+      "label": "The Bar",
+      "alt": "Coffee bar and brewing station at Thinkery Café"
+    },
+    {
+      "url": "https://res.cloudinary.com/dyhae5lts/image/upload/v1771651721/calm-cafe/gallery/gallery-workspace.webp",
+      "publicId": "calm-cafe/gallery/gallery-workspace",
+      "label": "Workspace",
+      "alt": "Workspace area with power outlets at Thinkery Café Calicut"
+    },
+    {
+      "url": "https://res.cloudinary.com/dyhae5lts/image/upload/v1771655231/calm-cafe/menu/xzidl0adhdnlz0vkpk44.webp",
+      "publicId": "calm-cafe/menu/xzidl0adhdnlz0vkpk44",
+      "label": "",
+      "alt": ""
+    },
+    {
+      "url": "https://res.cloudinary.com/dyhae5lts/image/upload/v1771655257/calm-cafe/menu/qymp543iapdfaqtlqbkj.webp",
+      "publicId": "calm-cafe/menu/qymp543iapdfaqtlqbkj",
+      "label": "",
+      "alt": ""
+    },
+    {
+      "url": "https://res.cloudinary.com/dyhae5lts/image/upload/v1771655283/calm-cafe/menu/cnacmqpvzquduo9d7zne.webp",
+      "publicId": "calm-cafe/menu/cnacmqpvzquduo9d7zne",
+      "label": "",
+      "alt": ""
+    },
+    {
+      "url": "https://res.cloudinary.com/dyhae5lts/image/upload/v1771655287/calm-cafe/menu/snl2ok5e9n09notfzjlv.webp",
+      "publicId": "calm-cafe/menu/snl2ok5e9n09notfzjlv",
+      "label": "",
+      "alt": ""
+    }
+  ],
+  "pageImages": {
+    "heroMain": {
+      "url": "/images/shop-interior.jpg",
+      "publicId": "",
+      "alt": "Thinkery Café interior — sophisticated olive and cream design with brass accents"
+    },
+    "aboutBig": {
+      "url": "/images/cafe-interior-2.jpg",
+      "publicId": "",
+      "alt": "Premium Thinkery workspace — calm café interior in Calicut"
+    },
+    "aboutSmall": {
+      "url": "/images/shop-interior.jpg",
+      "publicId": "",
+      "alt": "Calm corner for reading at Thinkery Café"
+    },
+    "aboutPageMain": {
+      "url": "/images/cafe-interior-2.jpg",
+      "publicId": "",
+      "alt": "The Thinkery Journey — café interior in Calicut"
+    },
+    "workAndMeetMain": {
+      "url": "/images/workspace.jpg",
+      "publicId": "",
+      "alt": "Premium Thinkery workspace in Calicut"
+    }
+  }
+}

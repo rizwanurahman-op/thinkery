@@ -69,7 +69,7 @@ export function Navbar() {
                     </Link>
 
                     {/* Desktop Navigation */}
-                    <div className={`hidden md:flex items-center gap-2 p-1.5 rounded-full border transition-all duration-300 shadow-sm
+                    <div className={`hidden lg:flex items-center gap-2 p-1.5 rounded-full border transition-all duration-300 shadow-sm
                         ${!isScrolled
                             ? 'bg-white/40 backdrop-blur-md border-white/40 lg:bg-white/60 lg:border-olive-900/10 lg:shadow-olive-900/5'
                             : 'bg-transparent border-transparent shadow-none'}`}>
@@ -90,7 +90,7 @@ export function Navbar() {
                     </div>
 
                     {/* Desktop CTA */}
-                    <div className="hidden md:flex items-center gap-3">
+                    <div className="hidden lg:flex items-center gap-3">
                         <Button
                             asChild
                             className={`rounded-full px-7 py-6 text-base shadow-xl transition-all duration-300 hover:shadow-2xl hover:-translate-y-0.5
@@ -104,7 +104,7 @@ export function Navbar() {
 
                     {/* Mobile Menu */}
                     <Sheet open={isOpen} onOpenChange={setIsOpen}>
-                        <SheetTrigger asChild className="md:hidden">
+                        <SheetTrigger asChild className="lg:hidden">
                             <button
                                 className={`p-2.5 rounded-full transition-all duration-300 ${!isScrolled
                                     ? (isHome ? 'bg-white/10 hover:bg-white/20 backdrop-blur-md text-white' : 'bg-olive-900/5 hover:bg-olive-900/10 text-olive-900')

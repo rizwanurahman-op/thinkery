@@ -1,0 +1,246 @@
+{
+  "categories": [
+    {
+      "id": "hot-beverages",
+      "label": "Hot Beverages",
+      "icon": "☕",
+      "sortOrder": 1
+    },
+    {
+      "id": "cold-beverages",
+      "label": "Cold Beverages",
+      "icon": "🧊",
+      "sortOrder": 2
+    },
+    {
+      "id": "snacks",
+      "label": "Snacks & Light Bites",
+      "icon": "🍔",
+      "sortOrder": 3
+    }
+  ],
+  "items": [
+    {
+      "id": "hb-1",
+      "name": "Signature Chai",
+      "description": "Our house-blend tea with handpicked spices and fresh milk",
+      "shortDesc": "Loose Leaf • Blends",
+      "price": "120",
+      "categoryId": "hot-beverages",
+      "badge": "Signature",
+      "image": "https://res.cloudinary.com/dyhae5lts/image/upload/v1771556751/calm-cafe/menu/chai-cup.webp",
+      "isActive": true,
+      "sortOrder": 1,
+      "imagePublicId": "calm-cafe/menu/chai-cup"
+    },
+    {
+      "id": "hb-2",
+      "name": "Premium Espresso",
+      "description": "Rich, aromatic single-origin espresso shot",
+      "shortDesc": "Espresso • Pour-over",
+      "price": "140",
+      "categoryId": "hot-beverages",
+      "image": "https://res.cloudinary.com/dyhae5lts/image/upload/v1771556759/calm-cafe/menu/espresso.webp",
+      "isActive": true,
+      "sortOrder": 4,
+      "imagePublicId": "calm-cafe/menu/espresso"
+    },
+    {
+      "id": "hb-3",
+      "name": "Cappuccino",
+      "description": "Velvety steamed milk with a perfect espresso base",
+      "shortDesc": "Steamed Milk • Espresso",
+      "price": "160",
+      "categoryId": "hot-beverages",
+      "image": "https://res.cloudinary.com/dyhae5lts/image/upload/v1771556748/calm-cafe/menu/cappuccino.webp",
+      "isActive": true,
+      "sortOrder": 7,
+      "imagePublicId": "calm-cafe/menu/cappuccino",
+      "badge": ""
+    },
+    {
+      "id": "hb-4",
+      "name": "Café Latte",
+      "description": "Smooth espresso blended with creamy steamed milk",
+      "shortDesc": "Smooth • Creamy",
+      "price": "180",
+      "categoryId": "hot-beverages",
+      "image": "https://res.cloudinary.com/dyhae5lts/image/upload/v1771556767/calm-cafe/menu/latte-art.webp",
+      "isActive": true,
+      "sortOrder": 10,
+      "imagePublicId": "calm-cafe/menu/latte-art"
+    },
+    {
+      "id": "hb-5",
+      "name": "Hot Chocolate",
+      "description": "Rich Belgian cocoa with steamed milk and cream",
+      "shortDesc": "Belgian Cocoa • Cream",
+      "price": "210",
+      "categoryId": "hot-beverages",
+      "image": "https://res.cloudinary.com/dyhae5lts/image/upload/v1771556764/calm-cafe/menu/hot-chocolate.webp",
+      "isActive": true,
+      "sortOrder": 13,
+      "imagePublicId": "calm-cafe/menu/hot-chocolate"
+    },
+    {
+      "id": "hb-6",
+      "name": "Green Tea",
+      "description": "Premium Japanese green tea, light and refreshing",
+      "shortDesc": "Japanese • Light & Fresh",
+      "price": "110",
+      "categoryId": "hot-beverages",
+      "image": "https://res.cloudinary.com/dyhae5lts/image/upload/v1771556763/calm-cafe/menu/green-tea.webp",
+      "isActive": true,
+      "sortOrder": 16,
+      "imagePublicId": "calm-cafe/menu/green-tea"
+    },
+    {
+      "id": "cb-1",
+      "name": "Iced Americano",
+      "description": "Double shot espresso over ice with chilled water",
+      "shortDesc": "Double Shot • Over Ice",
+      "price": "150",
+      "categoryId": "cold-beverages",
+      "badge": "Popular",
+      "image": "https://res.cloudinary.com/dyhae5lts/image/upload/v1771556746/calm-cafe/menu/americano.webp",
+      "isActive": true,
+      "sortOrder": 2,
+      "imagePublicId": "calm-cafe/menu/americano"
+    },
+    {
+      "id": "cb-2",
+      "name": "Fresh Fruit Juices",
+      "description": "Seasonal fresh-pressed juices — orange, watermelon, or mixed fruit",
+      "shortDesc": "No Sugar • Cold Pressed",
+      "price": "160",
+      "categoryId": "cold-beverages",
+      "image": "https://res.cloudinary.com/dyhae5lts/image/upload/v1771556765/calm-cafe/menu/juice.webp",
+      "isActive": true,
+      "sortOrder": 5,
+      "imagePublicId": "calm-cafe/menu/juice"
+    },
+    {
+      "id": "cb-3",
+      "name": "Classic Milkshake",
+      "description": "Thick, creamy milkshakes in chocolate, vanilla, or strawberry",
+      "shortDesc": "Thick • Creamy",
+      "price": "190",
+      "categoryId": "cold-beverages",
+      "image": "https://res.cloudinary.com/dyhae5lts/image/upload/v1771556772/calm-cafe/menu/milkshake.webp",
+      "isActive": true,
+      "sortOrder": 8,
+      "imagePublicId": "calm-cafe/menu/milkshake"
+    },
+    {
+      "id": "cb-4",
+      "name": "Cold Brew",
+      "description": "Slow-steeped for 18 hours for a smooth, bold flavor",
+      "shortDesc": "18-Hour Steep • Bold",
+      "price": "180",
+      "categoryId": "cold-beverages",
+      "badge": "New",
+      "image": "https://res.cloudinary.com/dyhae5lts/image/upload/v1771556754/calm-cafe/menu/cold-brew-real.webp",
+      "isActive": true,
+      "sortOrder": 11,
+      "imagePublicId": "calm-cafe/menu/cold-brew-real"
+    },
+    {
+      "id": "cb-5",
+      "name": "Iced Matcha Latte",
+      "description": "Ceremonial grade matcha whisked with chilled oat milk",
+      "shortDesc": "Ceremonial Grade • Oat Milk",
+      "price": "220",
+      "categoryId": "cold-beverages",
+      "badge": "New",
+      "image": "https://res.cloudinary.com/dyhae5lts/image/upload/v1771556770/calm-cafe/menu/matcha-iced.webp",
+      "isActive": true,
+      "sortOrder": 14,
+      "imagePublicId": "calm-cafe/menu/matcha-iced"
+    },
+    {
+      "id": "cb-6",
+      "name": "Mint Lemonade",
+      "description": "Sparkling lemonade with fresh mint and a hint of ginger",
+      "shortDesc": "Summer Refresher",
+      "price": "140",
+      "categoryId": "cold-beverages",
+      "image": "https://res.cloudinary.com/dyhae5lts/image/upload/v1771556768/calm-cafe/menu/lemonade.webp",
+      "isActive": true,
+      "sortOrder": 17,
+      "imagePublicId": "calm-cafe/menu/lemonade"
+    },
+    {
+      "id": "sn-1",
+      "name": "Classic Chicken Wrap",
+      "description": "Grilled chicken, fresh greens, and our house sauce in a soft tortilla",
+      "shortDesc": "Freshly Grilled • Chicken / Paneer",
+      "price": "180",
+      "categoryId": "snacks",
+      "badge": "Best Seller",
+      "image": "https://res.cloudinary.com/dyhae5lts/image/upload/v1771556752/calm-cafe/menu/chicken-wrap.webp",
+      "isActive": true,
+      "sortOrder": 3,
+      "imagePublicId": "calm-cafe/menu/chicken-wrap"
+    },
+    {
+      "id": "sn-2",
+      "name": "Smash Burger",
+      "description": "Double smashed patties with melted cheese and pickles",
+      "shortDesc": "Juicy Patty • Classic / Veg",
+      "price": "240",
+      "categoryId": "snacks",
+      "image": "https://res.cloudinary.com/dyhae5lts/image/upload/v1771556747/calm-cafe/menu/burger.webp",
+      "isActive": true,
+      "sortOrder": 6,
+      "imagePublicId": "calm-cafe/menu/burger"
+    },
+    {
+      "id": "sn-3",
+      "name": "Loaded Fries",
+      "description": "Crispy fries topped with cheese sauce, jalapeños, and herbs",
+      "shortDesc": "Seasoned • Cheese / Sauces",
+      "price": "160",
+      "categoryId": "snacks",
+      "image": "https://res.cloudinary.com/dyhae5lts/image/upload/v1771556761/calm-cafe/menu/fries.webp",
+      "isActive": true,
+      "sortOrder": 9,
+      "imagePublicId": "calm-cafe/menu/fries"
+    },
+    {
+      "id": "sn-4",
+      "name": "Crispy Cutlets",
+      "description": "Golden-fried vegetable or chicken cutlets with dipping sauce",
+      "shortDesc": "Crispy • Light Bites",
+      "price": "120",
+      "categoryId": "snacks",
+      "image": "https://res.cloudinary.com/dyhae5lts/image/upload/v1771556757/calm-cafe/menu/cutlets.webp",
+      "isActive": true,
+      "sortOrder": 12,
+      "imagePublicId": "calm-cafe/menu/cutlets"
+    },
+    {
+      "id": "sn-5",
+      "name": "Paneer Wrap",
+      "description": "Spiced paneer with crunchy veggies in a whole wheat wrap",
+      "shortDesc": "Spiced Paneer • Wheat Wrap",
+      "price": "170",
+      "categoryId": "snacks",
+      "image": "https://res.cloudinary.com/dyhae5lts/image/upload/v1771556773/calm-cafe/menu/paneer-wrap.webp",
+      "isActive": true,
+      "sortOrder": 15,
+      "imagePublicId": "calm-cafe/menu/paneer-wrap"
+    },
+    {
+      "id": "sn-6",
+      "name": "Club Sandwich",
+      "description": "Triple-layered with grilled chicken, egg, lettuce, and toast",
+      "shortDesc": "Triple Layer • Grilled",
+      "price": "220",
+      "categoryId": "snacks",
+      "image": "https://res.cloudinary.com/dyhae5lts/image/upload/v1771556774/calm-cafe/menu/sandwich.webp",
+      "isActive": true,
+      "sortOrder": 18,
+      "imagePublicId": "calm-cafe/menu/sandwich"
+    }
+  ]
+}

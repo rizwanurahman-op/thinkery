@@ -2,8 +2,8 @@ import type { Metadata, Viewport } from 'next';
 import { DM_Sans, Playfair_Display } from 'next/font/google';
 import './globals.css';
 import { AppProvider } from '@/providers/app-provider';
-import { Navbar } from '@/components/navbar';
-import { Footer } from '@/components/footer';
+import { Toaster } from 'sonner';
+
 import { CONTACT_INFO } from '@/data';
 
 const dmSans = DM_Sans({
@@ -153,7 +153,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en-IN" className={`${dmSans.variable} ${playfair.variable}`}>
+    <html lang="en-IN" className={`${dmSans.variable} ${playfair.variable}`} suppressHydrationWarning>
       <head>
         <script
           type="application/ld+json"
@@ -162,16 +162,20 @@ export default function RootLayout({
         {/* Preconnect to Google Fonts for faster font loading */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+        <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
+        {/* Preconnect to Cloudinary CDN — gallery + menu images load faster */}
+        <link rel="preconnect" href="https://res.cloudinary.com" />
+        <link rel="dns-prefetch" href="https://res.cloudinary.com" />
         {/* Favicon */}
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="apple-touch-icon" href="/favicon.ico" />
       </head>
-      <body className="font-sans antialiased bg-warm-50 text-olive-900 min-h-screen flex flex-col">
+      <body className="font-sans antialiased bg-warm-50 text-olive-900 min-h-screen flex flex-col" suppressHydrationWarning>
         <AppProvider>
-          <Navbar />
-          <main className="flex-1">{children}</main>
-          <Footer />
+          {children}
         </AppProvider>
+        <Toaster position="top-center" richColors />
       </body>
     </html>
   );

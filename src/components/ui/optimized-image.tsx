@@ -12,6 +12,8 @@ interface OptimizedImageProps {
     className?: string;
     priority?: boolean;
     sizes?: string;
+    quality?: number;
+    loading?: "lazy" | "eager";
 }
 
 export function OptimizedImage({
@@ -23,6 +25,8 @@ export function OptimizedImage({
     className = '',
     priority = false,
     sizes,
+    quality = 75, // Default Next.js quality is 75, returning to it for optimal performance
+    loading,
 }: OptimizedImageProps) {
     const [error, setError] = useState(false);
 
@@ -50,6 +54,8 @@ export function OptimizedImage({
             className={className}
             priority={priority}
             sizes={sizes}
+            quality={quality}
+            loading={loading}
             onError={() => setError(true)}
         />
     );

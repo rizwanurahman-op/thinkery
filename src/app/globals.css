@@ -215,6 +215,26 @@ html {
   background: #a8bba6;
 }
 
+/* Admin specific scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(142, 168, 115, 0.2);
+  border-radius: 10px;
+  transition: background 0.2s;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(194, 142, 64, 0.4);
+}
+
 /* Animated gradient text */
 .gradient-text {
   background: linear-gradient(135deg, #546032 0%, #5d7d5a 50%, #8b9a4e 100%);
@@ -468,6 +488,25 @@ html {
   animation: pulse-slow 4s ease-in-out infinite;
 }
 
+/* Marquee for Gallery Horizontal Scroll */
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee 40s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
 /* ✅ Accessibility: Disable all animations for users who prefer reduced motion */
 @media (prefers-reduced-motion: reduce) {
 
@@ -479,4 +518,21 @@ html {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* Hide scrollbar (gallery scroll strip) */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Gallery image hover scale (slightly beyond Tailwind's scale-105) */
+.group-hover\:scale-108:is(:where(.group):hover *) {
+  --tw-scale-x: 1.08;
+  --tw-scale-y: 1.08;
+  transform: var(--tw-transform);
 }

@@ -6,7 +6,8 @@ export default function robots(): MetadataRoute.Robots {
             {
                 userAgent: '*',
                 allow: '/',
-                disallow: ['/api/', '/_next/'],
+                // Block admin, API, and Next.js internals from being indexed
+                disallow: ['/admin/', '/admin/login', '/api/', '/_next/'],
             },
         ],
         sitemap: 'https://thinkerycafe.in/sitemap.xml',
