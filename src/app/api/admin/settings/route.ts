@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
 import { isAuthenticated } from '@/lib/auth';
-import { readSettings, writeSettings } from '@/lib/settings-store';
+import { readSettingsLive, writeSettings } from '@/lib/settings-store';
 
 // Admin — GET current settings
 export async function GET() {
@@ -9,7 +9,7 @@ export async function GET() {
         return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
     try {
-        const settings = readSettings();
+        const settings = await readSettingsLive();
         return NextResponse.json({ success: true, data: settings });
     } catch (error) {
         return NextResponse.json(

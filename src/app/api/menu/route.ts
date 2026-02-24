@@ -2,13 +2,15 @@ import { NextResponse } from 'next/server';
 import { getPublicMenuData } from '@/lib/menu-store';
 
 // Public endpoint — no auth required
-// Used by the public /menu page for ISR data fetching
+// Used by admin/offerings page to get live menu data from Redis
 export async function GET() {
     try {
-        const data = getPublicMenuData();
+        // await is required — getPublicMenuData() now reads from Redis (async)
+        const data = await getPublicMenuData();
         return NextResponse.json({ success: true, data }, {
             headers: {
-                'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
+                // No CDN caching — data must always be live from Redis
+                'Cache-Control': 'no-store',
             },
         });
     } catch (error) {

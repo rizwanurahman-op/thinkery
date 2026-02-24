@@ -52,7 +52,8 @@ function useMenuData() {
             if (!json.success) throw new Error(json.error);
             return json.data;
         },
-        staleTime: 10_000,
+        // 30s: matches Redis propagation window — prevents stale refetch overwriting confirmed data
+        staleTime: 30_000,
     });
 }
 
@@ -69,7 +70,19 @@ function useUpdateItemAccent() {
             if (!json.success) throw new Error(json.error);
             return json.data as MenuItem;
         },
-        onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'menu-data'] }),
+        // Update the cached menu data directly with the server-confirmed item
+        // (no invalidateQueries — that would trigger a refetch returning stale Redis/CDN data)
+        onSuccess: (updatedItem) => {
+            qc.setQueryData<MenuData>(['admin', 'menu-data'], (old) => {
+                if (!old) return old;
+                return {
+                    ...old,
+                    items: old.items.map((item) =>
+                        item.id === updatedItem.id ? updatedItem : item
+                    ),
+                };
+            });
+        },
     });
 }
 
