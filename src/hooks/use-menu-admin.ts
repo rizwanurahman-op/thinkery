@@ -65,7 +65,7 @@ export function useCategories() {
     return useQuery({
         queryKey: ['admin', 'categories'],
         queryFn: () => apiFetch<MenuCategoryItem[]>('/api/admin/categories'),
-        staleTime: 0, // always consider stale so refetch happens after mutations
+        staleTime: 0,
     });
 }
 
@@ -77,23 +77,31 @@ export function useCreateCategory() {
                 method: 'POST',
                 body: JSON.stringify(data),
             }),
-        // ✅ Optimistic: instantly add to list before server confirms
+        // Step 1: instantly add a placeholder while waiting for server
         onMutate: async (newCat) => {
             await queryClient.cancelQueries({ queryKey: ['admin', 'categories'] });
             const previous = queryClient.getQueryData<MenuCategoryItem[]>(['admin', 'categories']);
             queryClient.setQueryData<MenuCategoryItem[]>(['admin', 'categories'], (old = []) => [
                 ...old,
-                { id: newCat.id || '', label: newCat.label || '', icon: newCat.icon || '📋', sortOrder: newCat.sortOrder ?? 999 },
+                { id: newCat.id || `__temp__`, label: newCat.label || '', icon: newCat.icon || '📋', sortOrder: newCat.sortOrder ?? 999 },
             ]);
             return { previous };
         },
-        onError: (_err, _vars, context) => {
-            // Rollback on failure
-            if (context?.previous) queryClient.setQueryData(['admin', 'categories'], context.previous);
+        // Step 2: replace placeholder with the actual confirmed server data
+        onSuccess: (created) => {
+            queryClient.setQueryData<MenuCategoryItem[]>(['admin', 'categories'], (old = []) => {
+                const withoutTemp = old.filter((c) => !c.id.startsWith('__temp__') && c.id !== created.id);
+                return [...withoutTemp, created].sort((a, b) => a.sortOrder - b.sortOrder);
+            });
+            // Step 3: delayed background sync (gives Blob CDN ~5s to propagate)
+            // so the refetch doesn't overwrite the confirmed data with stale CDN data
+            setTimeout(() => {
+                queryClient.invalidateQueries({ queryKey: ['admin', 'categories'] });
+            }, 5000);
         },
-        onSettled: () => {
-            // Always sync with server after mutation completes
-            queryClient.invalidateQueries({ queryKey: ['admin', 'categories'] });
+        // Rollback on failure
+        onError: (_err, _vars, context) => {
+            if (context?.previous) queryClient.setQueryData(['admin', 'categories'], context.previous);
         },
     });
 }
@@ -106,7 +114,6 @@ export function useUpdateCategory() {
                 method: 'PUT',
                 body: JSON.stringify(data),
             }),
-        // ✅ Optimistic: instantly update in-place
         onMutate: async (updates) => {
             await queryClient.cancelQueries({ queryKey: ['admin', 'categories'] });
             const previous = queryClient.getQueryData<MenuCategoryItem[]>(['admin', 'categories']);
@@ -115,11 +122,17 @@ export function useUpdateCategory() {
             );
             return { previous };
         },
+        onSuccess: (updated) => {
+            // Replace with server-confirmed data
+            queryClient.setQueryData<MenuCategoryItem[]>(['admin', 'categories'], (old = []) =>
+                old.map((cat) => (cat.id === updated.id ? updated : cat))
+            );
+            setTimeout(() => {
+                queryClient.invalidateQueries({ queryKey: ['admin', 'categories'] });
+            }, 5000);
+        },
         onError: (_err, _vars, context) => {
             if (context?.previous) queryClient.setQueryData(['admin', 'categories'], context.previous);
-        },
-        onSettled: () => {
-            queryClient.invalidateQueries({ queryKey: ['admin', 'categories'] });
         },
     });
 }
@@ -129,7 +142,6 @@ export function useDeleteCategory() {
     return useMutation({
         mutationFn: (id: string) =>
             apiFetch<void>(`/api/admin/categories/${id}`, { method: 'DELETE' }),
-        // ✅ Optimistic: instantly remove from list
         onMutate: async (id) => {
             await queryClient.cancelQueries({ queryKey: ['admin', 'categories'] });
             const previous = queryClient.getQueryData<MenuCategoryItem[]>(['admin', 'categories']);
@@ -138,11 +150,14 @@ export function useDeleteCategory() {
             );
             return { previous };
         },
+        onSuccess: () => {
+            // Delete is confirmed — delay sync to avoid CDN stale read
+            setTimeout(() => {
+                queryClient.invalidateQueries({ queryKey: ['admin', 'categories'] });
+            }, 5000);
+        },
         onError: (_err, _vars, context) => {
             if (context?.previous) queryClient.setQueryData(['admin', 'categories'], context.previous);
-        },
-        onSettled: () => {
-            queryClient.invalidateQueries({ queryKey: ['admin', 'categories'] });
         },
     });
 }
@@ -153,7 +168,7 @@ export function useMenuItems() {
     return useQuery({
         queryKey: ['admin', 'items'],
         queryFn: () => apiFetch<MenuItem[]>('/api/admin/items'),
-        staleTime: 0, // always consider stale so refetch happens after mutations
+        staleTime: 0,
     });
 }
 
@@ -165,12 +180,11 @@ export function useCreateItem() {
                 method: 'POST',
                 body: JSON.stringify(data),
             }),
-        // ✅ Optimistic: instantly add to items list
         onMutate: async (newItem) => {
             await queryClient.cancelQueries({ queryKey: ['admin', 'items'] });
             const previous = queryClient.getQueryData<MenuItem[]>(['admin', 'items']);
             const tempItem: MenuItem = {
-                id: newItem.id || `temp-${Date.now()}`,
+                id: `__temp__${Date.now()}`,
                 name: newItem.name || '',
                 description: newItem.description || '',
                 shortDesc: newItem.shortDesc || '',
@@ -185,11 +199,18 @@ export function useCreateItem() {
             queryClient.setQueryData<MenuItem[]>(['admin', 'items'], (old = []) => [...old, tempItem]);
             return { previous };
         },
+        onSuccess: (created) => {
+            // Replace optimistic placeholder with server-confirmed item
+            queryClient.setQueryData<MenuItem[]>(['admin', 'items'], (old = []) => {
+                const withoutTemp = old.filter((i) => !i.id.startsWith('__temp__') && i.id !== created.id);
+                return [...withoutTemp, created].sort((a, b) => a.sortOrder - b.sortOrder);
+            });
+            setTimeout(() => {
+                queryClient.invalidateQueries({ queryKey: ['admin', 'items'] });
+            }, 5000);
+        },
         onError: (_err, _vars, context) => {
             if (context?.previous) queryClient.setQueryData(['admin', 'items'], context.previous);
-        },
-        onSettled: () => {
-            queryClient.invalidateQueries({ queryKey: ['admin', 'items'] });
         },
     });
 }
@@ -202,7 +223,6 @@ export function useUpdateItem() {
                 method: 'PUT',
                 body: JSON.stringify(data),
             }),
-        // ✅ Optimistic: instantly update in-place
         onMutate: async (updates) => {
             await queryClient.cancelQueries({ queryKey: ['admin', 'items'] });
             const previous = queryClient.getQueryData<MenuItem[]>(['admin', 'items']);
@@ -211,11 +231,16 @@ export function useUpdateItem() {
             );
             return { previous };
         },
+        onSuccess: (updated) => {
+            queryClient.setQueryData<MenuItem[]>(['admin', 'items'], (old = []) =>
+                old.map((item) => (item.id === updated.id ? updated : item))
+            );
+            setTimeout(() => {
+                queryClient.invalidateQueries({ queryKey: ['admin', 'items'] });
+            }, 5000);
+        },
         onError: (_err, _vars, context) => {
             if (context?.previous) queryClient.setQueryData(['admin', 'items'], context.previous);
-        },
-        onSettled: () => {
-            queryClient.invalidateQueries({ queryKey: ['admin', 'items'] });
         },
     });
 }
@@ -225,7 +250,6 @@ export function useDeleteItem() {
     return useMutation({
         mutationFn: (id: string) =>
             apiFetch<void>(`/api/admin/items/${id}`, { method: 'DELETE' }),
-        // ✅ Optimistic: instantly remove from list
         onMutate: async (id) => {
             await queryClient.cancelQueries({ queryKey: ['admin', 'items'] });
             const previous = queryClient.getQueryData<MenuItem[]>(['admin', 'items']);
@@ -234,11 +258,13 @@ export function useDeleteItem() {
             );
             return { previous };
         },
+        onSuccess: () => {
+            setTimeout(() => {
+                queryClient.invalidateQueries({ queryKey: ['admin', 'items'] });
+            }, 5000);
+        },
         onError: (_err, _vars, context) => {
             if (context?.previous) queryClient.setQueryData(['admin', 'items'], context.previous);
-        },
-        onSettled: () => {
-            queryClient.invalidateQueries({ queryKey: ['admin', 'items'] });
         },
     });
 }
