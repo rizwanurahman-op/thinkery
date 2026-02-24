@@ -13,6 +13,13 @@ async function apiFetch<T>(url: string, options?: RequestInit): Promise<T> {
     return json.data as T;
 }
 
+// ─── Blob CDN propagation time ───
+// Vercel Blob uses a CDN. After a write, the CDN takes 10–30s to propagate.
+// We set staleTime to 30s so React Query only refetches when enough time
+// has passed for the CDN to have the correct data.
+// This prevents the refetch from overwriting confirmed data with stale CDN data.
+const BLOB_STALE_TIME = 30_000; // 30 seconds
+
 // ─── Auth ───
 
 export function useAuthCheck() {
@@ -65,7 +72,9 @@ export function useCategories() {
     return useQuery({
         queryKey: ['admin', 'categories'],
         queryFn: () => apiFetch<MenuCategoryItem[]>('/api/admin/categories'),
-        staleTime: 0,
+        // 30s: ensures React Query won't immediately refetch after a mutation
+        // and overwrite correct optimistic data with stale Blob CDN data.
+        staleTime: BLOB_STALE_TIME,
     });
 }
 
@@ -77,32 +86,31 @@ export function useCreateCategory() {
                 method: 'POST',
                 body: JSON.stringify(data),
             }),
-        // Step 1: instantly add a placeholder while waiting for server
+        // Step 1: instantly add a placeholder while server processes
         onMutate: async (newCat) => {
             await queryClient.cancelQueries({ queryKey: ['admin', 'categories'] });
             const previous = queryClient.getQueryData<MenuCategoryItem[]>(['admin', 'categories']);
             queryClient.setQueryData<MenuCategoryItem[]>(['admin', 'categories'], (old = []) => [
                 ...old,
-                { id: newCat.id || `__temp__`, label: newCat.label || '', icon: newCat.icon || '📋', sortOrder: newCat.sortOrder ?? 999 },
+                { id: `__temp__`, label: newCat.label || '', icon: newCat.icon || '📋', sortOrder: newCat.sortOrder ?? 999 },
             ]);
             return { previous };
         },
-        // Step 2: replace placeholder with the actual confirmed server data
+        // Step 2: replace placeholder with EXACTLY what the server confirmed
+        // No refetch — the API response IS the truth, no CDN involved
         onSuccess: (created) => {
             queryClient.setQueryData<MenuCategoryItem[]>(['admin', 'categories'], (old = []) => {
                 const withoutTemp = old.filter((c) => !c.id.startsWith('__temp__') && c.id !== created.id);
                 return [...withoutTemp, created].sort((a, b) => a.sortOrder - b.sortOrder);
             });
-            // Step 3: delayed background sync (gives Blob CDN ~5s to propagate)
-            // so the refetch doesn't overwrite the confirmed data with stale CDN data
-            setTimeout(() => {
-                queryClient.invalidateQueries({ queryKey: ['admin', 'categories'] });
-            }, 5000);
         },
         // Rollback on failure
         onError: (_err, _vars, context) => {
             if (context?.previous) queryClient.setQueryData(['admin', 'categories'], context.previous);
         },
+        // ⚠️ NO invalidateQueries here — it would trigger a refetch that
+        // fetches stale CDN data and overwrite the correct confirmed data.
+        // staleTime: 30s on the query handles natural background refresh.
     });
 }
 
@@ -123,13 +131,9 @@ export function useUpdateCategory() {
             return { previous };
         },
         onSuccess: (updated) => {
-            // Replace with server-confirmed data
             queryClient.setQueryData<MenuCategoryItem[]>(['admin', 'categories'], (old = []) =>
                 old.map((cat) => (cat.id === updated.id ? updated : cat))
             );
-            setTimeout(() => {
-                queryClient.invalidateQueries({ queryKey: ['admin', 'categories'] });
-            }, 5000);
         },
         onError: (_err, _vars, context) => {
             if (context?.previous) queryClient.setQueryData(['admin', 'categories'], context.previous);
@@ -151,10 +155,7 @@ export function useDeleteCategory() {
             return { previous };
         },
         onSuccess: () => {
-            // Delete is confirmed — delay sync to avoid CDN stale read
-            setTimeout(() => {
-                queryClient.invalidateQueries({ queryKey: ['admin', 'categories'] });
-            }, 5000);
+            // Cache is already correct from onMutate — no refetch needed
         },
         onError: (_err, _vars, context) => {
             if (context?.previous) queryClient.setQueryData(['admin', 'categories'], context.previous);
@@ -168,7 +169,7 @@ export function useMenuItems() {
     return useQuery({
         queryKey: ['admin', 'items'],
         queryFn: () => apiFetch<MenuItem[]>('/api/admin/items'),
-        staleTime: 0,
+        staleTime: BLOB_STALE_TIME,
     });
 }
 
@@ -200,14 +201,11 @@ export function useCreateItem() {
             return { previous };
         },
         onSuccess: (created) => {
-            // Replace optimistic placeholder with server-confirmed item
+            // Replace placeholder with server-confirmed item — no CDN refetch
             queryClient.setQueryData<MenuItem[]>(['admin', 'items'], (old = []) => {
                 const withoutTemp = old.filter((i) => !i.id.startsWith('__temp__') && i.id !== created.id);
                 return [...withoutTemp, created].sort((a, b) => a.sortOrder - b.sortOrder);
             });
-            setTimeout(() => {
-                queryClient.invalidateQueries({ queryKey: ['admin', 'items'] });
-            }, 5000);
         },
         onError: (_err, _vars, context) => {
             if (context?.previous) queryClient.setQueryData(['admin', 'items'], context.previous);
@@ -235,9 +233,6 @@ export function useUpdateItem() {
             queryClient.setQueryData<MenuItem[]>(['admin', 'items'], (old = []) =>
                 old.map((item) => (item.id === updated.id ? updated : item))
             );
-            setTimeout(() => {
-                queryClient.invalidateQueries({ queryKey: ['admin', 'items'] });
-            }, 5000);
         },
         onError: (_err, _vars, context) => {
             if (context?.previous) queryClient.setQueryData(['admin', 'items'], context.previous);
@@ -259,9 +254,7 @@ export function useDeleteItem() {
             return { previous };
         },
         onSuccess: () => {
-            setTimeout(() => {
-                queryClient.invalidateQueries({ queryKey: ['admin', 'items'] });
-            }, 5000);
+            // Cache is already correct from onMutate
         },
         onError: (_err, _vars, context) => {
             if (context?.previous) queryClient.setQueryData(['admin', 'items'], context.previous);

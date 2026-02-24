@@ -9,13 +9,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             new QueryClient({
                 defaultOptions: {
                     queries: {
-                        // Data is considered fresh for 30s — after that it will be refetched
+                        // 30s stale time: aligns with Blob CDN propagation time.
+                        // After a mutation, React Query won't auto-refetch for 30s,
+                        // preventing stale CDN data from overwriting correct cache.
                         staleTime: 30_000,
-                        // Always refetch when component mounts (catches stale data)
+                        // Only refetch on mount when data is actually stale (>30s old)
                         refetchOnMount: true,
-                        // Refetch when browser tab regains focus
-                        refetchOnWindowFocus: true,
-                        // Retry once on failure (not 3 times)
+                        // Don't refetch on focus — would fetch stale CDN data
+                        refetchOnWindowFocus: false,
+                        // Retry once on genuine failures
                         retry: 1,
                     },
                 },
