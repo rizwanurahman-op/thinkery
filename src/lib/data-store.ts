@@ -62,9 +62,10 @@ async function blobWrite<T>(blobKey: string, data: T): Promise<void> {
     const { put } = await import('@vercel/blob');
     const json = JSON.stringify(data, null, 2);
     await put(blobKey, json, {
-        access: 'public',   // blob is accessed via URL (but the JSON is not secret)
+        access: 'public',       // blob is accessed via URL (but the JSON is not secret)
         contentType: 'application/json',
-        addRandomSuffix: false, // keep a stable, deterministic key
+        addRandomSuffix: false,  // keep a stable, deterministic key
+        allowOverwrite: true,    // update existing blob on subsequent saves
     });
 }
 
