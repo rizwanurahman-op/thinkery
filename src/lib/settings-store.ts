@@ -149,53 +149,70 @@ export function readSettings(): SiteSettings {
     try {
         const raw = readDataSync<Record<string, unknown>>(LOCAL_PATH, {});
         if (!raw || Object.keys(raw).length === 0) return DEFAULT_SETTINGS;
-
-        const parsed = raw;
-        const section = (parsed.offeringsSection ?? {}) as Record<string, unknown>;
-        const bevRaw = (section.beverageCard ?? {}) as Record<string, unknown>;
-        const foodRaw = (section.foodCard ?? {}) as Record<string, unknown>;
-
-        const defaultBevIds = DEFAULT_SETTINGS.offeringsSection.beverageCard.categoryIds;
-        const defaultFoodIds = DEFAULT_SETTINGS.offeringsSection.foodCard.categoryIds;
-        const allDefaultIds = [...defaultBevIds, ...defaultFoodIds];
-
-        const foodIds = Array.isArray(foodRaw.categoryIds)
-            ? (foodRaw.categoryIds as string[])
-            : defaultFoodIds;
-        const bevCard = migrateCard(bevRaw, DEFAULT_SETTINGS.offeringsSection.beverageCard, allDefaultIds, foodIds);
-        const bevIds = bevCard.categoryIds;
-        const foodCard = migrateCard(foodRaw, DEFAULT_SETTINGS.offeringsSection.foodCard, allDefaultIds, bevIds);
-
-        const savedPageImages = (parsed.pageImages ?? {}) as Record<string, unknown>;
-        const mergedPageImages: PageImages = {
-            heroMain: { ...DEFAULT_PAGE_IMAGES.heroMain, ...(savedPageImages.heroMain as object ?? {}) },
-            aboutBig: { ...DEFAULT_PAGE_IMAGES.aboutBig, ...(savedPageImages.aboutBig as object ?? {}) },
-            aboutSmall: { ...DEFAULT_PAGE_IMAGES.aboutSmall, ...(savedPageImages.aboutSmall as object ?? {}) },
-            aboutPageMain: { ...DEFAULT_PAGE_IMAGES.aboutPageMain, ...(savedPageImages.aboutPageMain as object ?? {}) },
-            workAndMeetMain: { ...DEFAULT_PAGE_IMAGES.workAndMeetMain, ...(savedPageImages.workAndMeetMain as object ?? {}) },
-        };
-
-        return {
-            ...DEFAULT_SETTINGS,
-            ...parsed,
-            offeringsSection: {
-                ...DEFAULT_SETTINGS.offeringsSection,
-                ...section,
-                beverageCard: bevCard,
-                foodCard: foodCard,
-            },
-            galleryImages: Array.isArray(parsed.galleryImages)
-                ? (parsed.galleryImages as GalleryImage[])
-                : DEFAULT_SETTINGS.galleryImages,
-            pageImages: mergedPageImages,
-        } as SiteSettings;
+        return parseSettings(raw);
     } catch {
         return DEFAULT_SETTINGS;
     }
 }
 
+// ─── ASYNC version — reads from Redis for always-live data ───────────────────
+// Use this in all server components / page.tsx files so admin changes
+// are reflected immediately without waiting for ISR revalidation.
+
+export async function readSettingsLive(): Promise<SiteSettings> {
+    try {
+        const raw = await readData<Record<string, unknown>>(LOCAL_PATH, BLOB_KEY, {});
+        if (!raw || Object.keys(raw).length === 0) return DEFAULT_SETTINGS;
+        return parseSettings(raw);
+    } catch {
+        return DEFAULT_SETTINGS;
+    }
+}
+
+// ─── Shared parser (used by both sync and async versions) ────────────────────
+
+function parseSettings(parsed: Record<string, unknown>): SiteSettings {
+    const section = (parsed.offeringsSection ?? {}) as Record<string, unknown>;
+    const bevRaw = (section.beverageCard ?? {}) as Record<string, unknown>;
+    const foodRaw = (section.foodCard ?? {}) as Record<string, unknown>;
+
+    const defaultBevIds = DEFAULT_SETTINGS.offeringsSection.beverageCard.categoryIds;
+    const defaultFoodIds = DEFAULT_SETTINGS.offeringsSection.foodCard.categoryIds;
+    const allDefaultIds = [...defaultBevIds, ...defaultFoodIds];
+
+    const foodIds = Array.isArray(foodRaw.categoryIds)
+        ? (foodRaw.categoryIds as string[])
+        : defaultFoodIds;
+    const bevCard = migrateCard(bevRaw, DEFAULT_SETTINGS.offeringsSection.beverageCard, allDefaultIds, foodIds);
+    const bevIds = bevCard.categoryIds;
+    const foodCard = migrateCard(foodRaw, DEFAULT_SETTINGS.offeringsSection.foodCard, allDefaultIds, bevIds);
+
+    const savedPageImages = (parsed.pageImages ?? {}) as Record<string, unknown>;
+    const mergedPageImages: PageImages = {
+        heroMain: { ...DEFAULT_PAGE_IMAGES.heroMain, ...(savedPageImages.heroMain as object ?? {}) },
+        aboutBig: { ...DEFAULT_PAGE_IMAGES.aboutBig, ...(savedPageImages.aboutBig as object ?? {}) },
+        aboutSmall: { ...DEFAULT_PAGE_IMAGES.aboutSmall, ...(savedPageImages.aboutSmall as object ?? {}) },
+        aboutPageMain: { ...DEFAULT_PAGE_IMAGES.aboutPageMain, ...(savedPageImages.aboutPageMain as object ?? {}) },
+        workAndMeetMain: { ...DEFAULT_PAGE_IMAGES.workAndMeetMain, ...(savedPageImages.workAndMeetMain as object ?? {}) },
+    };
+
+    return {
+        ...DEFAULT_SETTINGS,
+        ...parsed,
+        offeringsSection: {
+            ...DEFAULT_SETTINGS.offeringsSection,
+            ...section,
+            beverageCard: bevCard,
+            foodCard: foodCard,
+        },
+        galleryImages: Array.isArray(parsed.galleryImages)
+            ? (parsed.galleryImages as GalleryImage[])
+            : DEFAULT_SETTINGS.galleryImages,
+        pageImages: mergedPageImages,
+    } as SiteSettings;
+}
+
 export async function writeSettings(updates: Partial<SiteSettings>): Promise<SiteSettings> {
-    // For write operations, always read from the universal store (async) to get latest data
     const current = await readData<SiteSettings>(LOCAL_PATH, BLOB_KEY, DEFAULT_SETTINGS);
     const next: SiteSettings = {
         ...current,
@@ -218,3 +235,4 @@ export async function writeSettings(updates: Partial<SiteSettings>): Promise<Sit
     await writeData<SiteSettings>(LOCAL_PATH, BLOB_KEY, next);
     return next;
 }
+

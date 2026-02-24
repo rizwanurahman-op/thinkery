@@ -1,10 +1,10 @@
 import type { Metadata } from 'next';
 import { MenuContent } from './menu-content';
 import { getPublicMenuData } from '@/lib/menu-store';
-import { readSettings } from '@/lib/settings-store';
+import { readSettingsLive } from '@/lib/settings-store';
 
-// ✅ ISR: revalidate every 60 seconds for fresh data + fast loads
-export const revalidate = 60;
+// No ISR caching — always reads live from Redis so admin changes appear immediately
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
     title: 'Café Menu',
@@ -19,7 +19,6 @@ export const metadata: Metadata = {
         'Thinkery menu',
         'Café snacks Calicut',
     ],
-    // ✅ Canonical URL for this page
     alternates: {
         canonical: 'https://thinkerycafe.in/menu',
     },
@@ -32,11 +31,11 @@ export const metadata: Metadata = {
     },
 };
 
-export default function MenuPage() {
-    // ✅ Server-side data fetch — reads directly from JSON file (no API call overhead)
-    // Data is included in the HTML for perfect SEO crawlability
-    const { categories, items } = getPublicMenuData();
-    const { showPrices } = readSettings();
+export default async function MenuPage() {
+    const [{ categories, items }, { showPrices }] = await Promise.all([
+        getPublicMenuData(),
+        readSettingsLive(),
+    ]);
 
     return <MenuContent categories={categories} items={items} showPrices={showPrices} />;
 }

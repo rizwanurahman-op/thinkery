@@ -1,5 +1,4 @@
-// ✅ SERVER COMPONENT — No 'use client' here
-// This file is server-rendered so Google can index all content
+import type { Metadata } from 'next';
 import { HeroSection } from './_sections/hero-section';
 import { AboutSection } from './_sections/about-section';
 import { DifferenceSection } from './_sections/difference-section';
@@ -7,14 +6,19 @@ import { OfferingsSection } from './_sections/offerings-section';
 import { GallerySection } from './_sections/gallery-section';
 import { AudienceSection } from './_sections/audience-section';
 import { getPublicMenuData } from '@/lib/menu-store';
-import { readSettings } from '@/lib/settings-store';
+import { readSettingsLive } from '@/lib/settings-store';
 
-// ISR: revalidate every 60 seconds so any admin menu change shows up quickly
-export const revalidate = 60;
+// No ISR caching — always reads live from Redis so admin changes appear immediately
+export const dynamic = 'force-dynamic';
 
-export default function HomePage() {
-  const { categories, items } = getPublicMenuData();
-  const { showPrices, offeringsSection, galleryImages, pageImages } = readSettings();
+export default async function HomePage() {
+  const [menuData, settings] = await Promise.all([
+    getPublicMenuData(),
+    readSettingsLive(),
+  ]);
+
+  const { categories, items } = menuData;
+  const { showPrices, offeringsSection, galleryImages, pageImages } = settings;
 
   return (
     <>
@@ -27,5 +31,3 @@ export default function HomePage() {
     </>
   );
 }
-
-

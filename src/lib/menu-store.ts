@@ -17,11 +17,10 @@ async function writeStore(data: MenuData): Promise<void> {
     await writeData<MenuData>(LOCAL_PATH, BLOB_KEY, data);
 }
 
-// ─── Public API (read-only, for server components & public pages) ───
-// Uses synchronous read — safe because public pages only read, never write.
+// ─── Public API — ASYNC (reads from Redis for always-live data) ───
 
-export function getPublicMenuData(): MenuData {
-    const data = readDataSync<MenuData>(LOCAL_PATH, EMPTY);
+export async function getPublicMenuData(): Promise<MenuData> {
+    const data = await readData<MenuData>(LOCAL_PATH, BLOB_KEY, EMPTY);
     return {
         categories: data.categories.sort((a, b) => a.sortOrder - b.sortOrder),
         items: data.items

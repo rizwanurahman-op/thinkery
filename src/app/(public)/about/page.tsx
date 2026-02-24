@@ -1,8 +1,9 @@
 import type { Metadata } from 'next';
 import { AboutContent } from './about-content';
-import { readSettings } from '@/lib/settings-store';
+import { readSettingsLive } from '@/lib/settings-store';
 
-export const revalidate = 60;
+// No ISR caching — always reads live from Redis so admin changes appear immediately
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
     title: 'About Us — Our Story & Vision',
@@ -16,7 +17,6 @@ export const metadata: Metadata = {
         'Thinkery vision',
         'Café founders Calicut',
     ],
-    // ✅ Canonical URL for this page
     alternates: {
         canonical: 'https://thinkerycafe.in/about',
     },
@@ -29,8 +29,7 @@ export const metadata: Metadata = {
     },
 };
 
-export default function AboutPage() {
-    const { pageImages } = readSettings();
+export default async function AboutPage() {
+    const { pageImages } = await readSettingsLive();
     return <AboutContent mainImage={pageImages.aboutPageMain} />;
 }
-

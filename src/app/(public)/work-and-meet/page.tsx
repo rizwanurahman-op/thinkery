@@ -1,8 +1,9 @@
 import type { Metadata } from 'next';
 import { WorkAndMeetContent } from './work-content';
-import { readSettings } from '@/lib/settings-store';
+import { readSettingsLive } from '@/lib/settings-store';
 
-export const revalidate = 60;
+// No ISR caching — always reads live from Redis so admin changes appear immediately
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
     title: 'Work & Meet — Remote Work Café in Calicut',
@@ -20,7 +21,6 @@ export const metadata: Metadata = {
         'Coworking café Calicut',
         'Work café Kozhikode',
     ],
-    // ✅ Canonical URL for this page
     alternates: {
         canonical: 'https://thinkerycafe.in/work-and-meet',
     },
@@ -33,8 +33,7 @@ export const metadata: Metadata = {
     },
 };
 
-export default function WorkAndMeetPage() {
-    const { pageImages } = readSettings();
+export default async function WorkAndMeetPage() {
+    const { pageImages } = await readSettingsLive();
     return <WorkAndMeetContent mainImage={pageImages.workAndMeetMain} />;
 }
-
