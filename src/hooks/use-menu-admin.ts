@@ -65,6 +65,7 @@ export function useCategories() {
     return useQuery({
         queryKey: ['admin', 'categories'],
         queryFn: () => apiFetch<MenuCategoryItem[]>('/api/admin/categories'),
+        staleTime: 0, // always consider stale so refetch happens after mutations
     });
 }
 
@@ -76,7 +77,22 @@ export function useCreateCategory() {
                 method: 'POST',
                 body: JSON.stringify(data),
             }),
-        onSuccess: () => {
+        // ✅ Optimistic: instantly add to list before server confirms
+        onMutate: async (newCat) => {
+            await queryClient.cancelQueries({ queryKey: ['admin', 'categories'] });
+            const previous = queryClient.getQueryData<MenuCategoryItem[]>(['admin', 'categories']);
+            queryClient.setQueryData<MenuCategoryItem[]>(['admin', 'categories'], (old = []) => [
+                ...old,
+                { id: newCat.id || '', label: newCat.label || '', icon: newCat.icon || '📋', sortOrder: newCat.sortOrder ?? 999 },
+            ]);
+            return { previous };
+        },
+        onError: (_err, _vars, context) => {
+            // Rollback on failure
+            if (context?.previous) queryClient.setQueryData(['admin', 'categories'], context.previous);
+        },
+        onSettled: () => {
+            // Always sync with server after mutation completes
             queryClient.invalidateQueries({ queryKey: ['admin', 'categories'] });
         },
     });
@@ -90,7 +106,19 @@ export function useUpdateCategory() {
                 method: 'PUT',
                 body: JSON.stringify(data),
             }),
-        onSuccess: () => {
+        // ✅ Optimistic: instantly update in-place
+        onMutate: async (updates) => {
+            await queryClient.cancelQueries({ queryKey: ['admin', 'categories'] });
+            const previous = queryClient.getQueryData<MenuCategoryItem[]>(['admin', 'categories']);
+            queryClient.setQueryData<MenuCategoryItem[]>(['admin', 'categories'], (old = []) =>
+                old.map((cat) => (cat.id === updates.id ? { ...cat, ...updates } : cat))
+            );
+            return { previous };
+        },
+        onError: (_err, _vars, context) => {
+            if (context?.previous) queryClient.setQueryData(['admin', 'categories'], context.previous);
+        },
+        onSettled: () => {
             queryClient.invalidateQueries({ queryKey: ['admin', 'categories'] });
         },
     });
@@ -101,7 +129,19 @@ export function useDeleteCategory() {
     return useMutation({
         mutationFn: (id: string) =>
             apiFetch<void>(`/api/admin/categories/${id}`, { method: 'DELETE' }),
-        onSuccess: () => {
+        // ✅ Optimistic: instantly remove from list
+        onMutate: async (id) => {
+            await queryClient.cancelQueries({ queryKey: ['admin', 'categories'] });
+            const previous = queryClient.getQueryData<MenuCategoryItem[]>(['admin', 'categories']);
+            queryClient.setQueryData<MenuCategoryItem[]>(['admin', 'categories'], (old = []) =>
+                old.filter((cat) => cat.id !== id)
+            );
+            return { previous };
+        },
+        onError: (_err, _vars, context) => {
+            if (context?.previous) queryClient.setQueryData(['admin', 'categories'], context.previous);
+        },
+        onSettled: () => {
             queryClient.invalidateQueries({ queryKey: ['admin', 'categories'] });
         },
     });
@@ -113,6 +153,7 @@ export function useMenuItems() {
     return useQuery({
         queryKey: ['admin', 'items'],
         queryFn: () => apiFetch<MenuItem[]>('/api/admin/items'),
+        staleTime: 0, // always consider stale so refetch happens after mutations
     });
 }
 
@@ -124,7 +165,30 @@ export function useCreateItem() {
                 method: 'POST',
                 body: JSON.stringify(data),
             }),
-        onSuccess: () => {
+        // ✅ Optimistic: instantly add to items list
+        onMutate: async (newItem) => {
+            await queryClient.cancelQueries({ queryKey: ['admin', 'items'] });
+            const previous = queryClient.getQueryData<MenuItem[]>(['admin', 'items']);
+            const tempItem: MenuItem = {
+                id: newItem.id || `temp-${Date.now()}`,
+                name: newItem.name || '',
+                description: newItem.description || '',
+                shortDesc: newItem.shortDesc || '',
+                price: newItem.price,
+                categoryId: newItem.categoryId || '',
+                badge: newItem.badge,
+                image: newItem.image,
+                imagePublicId: newItem.imagePublicId,
+                isActive: newItem.isActive ?? true,
+                sortOrder: newItem.sortOrder ?? 999,
+            };
+            queryClient.setQueryData<MenuItem[]>(['admin', 'items'], (old = []) => [...old, tempItem]);
+            return { previous };
+        },
+        onError: (_err, _vars, context) => {
+            if (context?.previous) queryClient.setQueryData(['admin', 'items'], context.previous);
+        },
+        onSettled: () => {
             queryClient.invalidateQueries({ queryKey: ['admin', 'items'] });
         },
     });
@@ -138,7 +202,19 @@ export function useUpdateItem() {
                 method: 'PUT',
                 body: JSON.stringify(data),
             }),
-        onSuccess: () => {
+        // ✅ Optimistic: instantly update in-place
+        onMutate: async (updates) => {
+            await queryClient.cancelQueries({ queryKey: ['admin', 'items'] });
+            const previous = queryClient.getQueryData<MenuItem[]>(['admin', 'items']);
+            queryClient.setQueryData<MenuItem[]>(['admin', 'items'], (old = []) =>
+                old.map((item) => (item.id === updates.id ? { ...item, ...updates } : item))
+            );
+            return { previous };
+        },
+        onError: (_err, _vars, context) => {
+            if (context?.previous) queryClient.setQueryData(['admin', 'items'], context.previous);
+        },
+        onSettled: () => {
             queryClient.invalidateQueries({ queryKey: ['admin', 'items'] });
         },
     });
@@ -149,7 +225,19 @@ export function useDeleteItem() {
     return useMutation({
         mutationFn: (id: string) =>
             apiFetch<void>(`/api/admin/items/${id}`, { method: 'DELETE' }),
-        onSuccess: () => {
+        // ✅ Optimistic: instantly remove from list
+        onMutate: async (id) => {
+            await queryClient.cancelQueries({ queryKey: ['admin', 'items'] });
+            const previous = queryClient.getQueryData<MenuItem[]>(['admin', 'items']);
+            queryClient.setQueryData<MenuItem[]>(['admin', 'items'], (old = []) =>
+                old.filter((item) => item.id !== id)
+            );
+            return { previous };
+        },
+        onError: (_err, _vars, context) => {
+            if (context?.previous) queryClient.setQueryData(['admin', 'items'], context.previous);
+        },
+        onSettled: () => {
             queryClient.invalidateQueries({ queryKey: ['admin', 'items'] });
         },
     });
