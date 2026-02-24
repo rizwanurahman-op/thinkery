@@ -37,17 +37,32 @@ function localWrite<T>(filePath: string, data: T): void {
 
 async function blobRead<T>(blobKey: string, defaultValue: T): Promise<T> {
     try {
-        // Dynamically import to avoid loading in local dev
-        const { list, head } = await import('@vercel/blob');
+        const { head } = await import('@vercel/blob');
 
-        // Search for the blob by prefix
-        const { blobs } = await list({ prefix: blobKey });
-        const found = blobs.find((b) => b.pathname === blobKey);
+        // head() gives us the authoritative blob metadata (not CDN-cached)
+        let blobUrl: string;
+        try {
+            const metadata = await head(blobKey);
+            blobUrl = metadata.url;
+        } catch {
+            // Blob doesn't exist yet (e.g. first run before any writes)
+            return defaultValue;
+        }
 
-        if (!found) return defaultValue;
-
-        // Fetch the raw content
-        const res = await fetch(found.url, { cache: 'no-store' });
+        // ⚠️ CRITICAL: Vercel Blob serves content via a CDN.
+        // After overwriting a blob with allowOverwrite:true, the CDN may serve
+        // the OLD cached content for seconds or even minutes.
+        // Appending a unique timestamp to the URL forces the CDN to bypass
+        // its cache and fetch from origin on every read.
+        const cacheBust = `?t=${Date.now()}`;
+        const res = await fetch(`${blobUrl}${cacheBust}`, {
+            cache: 'no-store',
+            headers: {
+                // Some CDNs respect Pragma: no-cache as a secondary signal
+                'Pragma': 'no-cache',
+                'Cache-Control': 'no-cache, no-store',
+            },
+        });
         if (!res.ok) return defaultValue;
 
         const text = await res.text();
