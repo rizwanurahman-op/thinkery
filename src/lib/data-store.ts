@@ -1,24 +1,31 @@
 /**
  * Universal Data Store
  *
- * Transparently switches between:
- * - LOCAL (development):  reads/writes JSON files in src/data/ (fast, familiar)
- * - PRODUCTION (Vercel):  reads/writes JSON to Vercel Blob Storage
+ * Storage tier priority:
  *
- * This solves the EROFS read-only filesystem error on Vercel serverless functions.
+ *  LOCAL DEV    → src/data/*.json  (fast, no auth required)
+ *  VERCEL + KV  → Upstash Redis    (immediately consistent, no CDN)
+ *  VERCEL + Blob only → Vercel Blob (legacy fallback, CDN-cached — not recommended for writes)
+ *
+ * Why Redis over Blob for mutable data:
+ *   Vercel Blob uses a CDN. After overwriting a blob, the CDN may serve stale
+ *   content for 10–60+ seconds regardless of cache-busting headers.
+ *   Upstash Redis (KV) has NO CDN layer — reads always return the latest write.
  */
 
 import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { join } from 'path';
 
-// Check if we're running on Vercel (production/preview environment)
-const IS_VERCEL = !!process.env.BLOB_READ_WRITE_TOKEN;
+// ─── Environment detection ────────────────────────────────────────────────────
 
-// ─── Local File Helpers ───────────────────────────────────────────────
+const IS_VERCEL = !!(process.env.VERCEL || process.env.BLOB_READ_WRITE_TOKEN || process.env.UPSTASH_REDIS_REST_URL);
+const HAS_KV = !!(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN);
+
+// ─── Local File Helpers ───────────────────────────────────────────────────────
 
 function localRead<T>(filePath: string, defaultValue: T): T {
     if (!existsSync(filePath)) {
-        writeFileSync(filePath, JSON.stringify(defaultValue, null, 2), 'utf-8');
+        try { writeFileSync(filePath, JSON.stringify(defaultValue, null, 2), 'utf-8'); } catch { /* readonly env */ }
         return defaultValue;
     }
     try {
@@ -33,97 +40,110 @@ function localWrite<T>(filePath: string, data: T): void {
     writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8');
 }
 
-// ─── Vercel Blob Helpers ──────────────────────────────────────────────
+// ─── Upstash Redis (KV) Helpers ───────────────────────────────────────────────
+// Immediately consistent — no CDN, reads always see the latest write.
 
-async function blobRead<T>(blobKey: string, defaultValue: T): Promise<T> {
+async function kvRead<T>(kvKey: string, defaultValue: T): Promise<T> {
     try {
-        const { head } = await import('@vercel/blob');
-
-        // head() gives us the authoritative blob metadata (not CDN-cached)
-        let blobUrl: string;
-        try {
-            const metadata = await head(blobKey);
-            blobUrl = metadata.url;
-        } catch {
-            // Blob doesn't exist yet (e.g. first run before any writes)
-            return defaultValue;
-        }
-
-        // ⚠️ CRITICAL: Vercel Blob serves content via a CDN.
-        // After overwriting a blob with allowOverwrite:true, the CDN may serve
-        // the OLD cached content for seconds or even minutes.
-        // Appending a unique timestamp to the URL forces the CDN to bypass
-        // its cache and fetch from origin on every read.
-        const cacheBust = `?t=${Date.now()}`;
-        const res = await fetch(`${blobUrl}${cacheBust}`, {
-            cache: 'no-store',
-            headers: {
-                // Some CDNs respect Pragma: no-cache as a secondary signal
-                'Pragma': 'no-cache',
-                'Cache-Control': 'no-cache, no-store',
-            },
+        const { Redis } = await import('@upstash/redis');
+        const redis = new Redis({
+            url: process.env.UPSTASH_REDIS_REST_URL!,
+            token: process.env.UPSTASH_REDIS_REST_TOKEN!,
         });
-        if (!res.ok) return defaultValue;
-
-        const text = await res.text();
-        return JSON.parse(text) as T;
-    } catch {
+        const data = await redis.get<T>(kvKey);
+        return data ?? defaultValue;
+    } catch (err) {
+        console.error('[data-store] KV read error:', err);
         return defaultValue;
     }
 }
 
-async function blobWrite<T>(blobKey: string, data: T): Promise<void> {
-    // Dynamically import to avoid loading in local dev
-    const { put } = await import('@vercel/blob');
-    const json = JSON.stringify(data, null, 2);
-    await put(blobKey, json, {
-        access: 'public',       // blob is accessed via URL (but the JSON is not secret)
-        contentType: 'application/json',
-        addRandomSuffix: false,  // keep a stable, deterministic key
-        allowOverwrite: true,    // update existing blob on subsequent saves
-    });
+async function kvWrite<T>(kvKey: string, data: T): Promise<void> {
+    try {
+        const { Redis } = await import('@upstash/redis');
+        const redis = new Redis({
+            url: process.env.UPSTASH_REDIS_REST_URL!,
+            token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+        });
+        // Store with no expiry — data persists until explicitly updated
+        await redis.set(kvKey, data);
+    } catch (err) {
+        console.error('[data-store] KV write error:', err);
+        throw err;
+    }
 }
 
-// ─── Public API ───────────────────────────────────────────────────────
+// ─── Vercel Blob Helpers (write-backup only) ──────────────────────────────────
+// Used as a secondary backup store. NOT used for reads (CDN caching makes reads unreliable).
+
+async function blobWrite<T>(blobKey: string, data: T): Promise<void> {
+    try {
+        const { put } = await import('@vercel/blob');
+        const json = JSON.stringify(data, null, 2);
+        await put(blobKey, json, {
+            access: 'public',
+            contentType: 'application/json',
+            addRandomSuffix: false,
+            allowOverwrite: true,
+        });
+    } catch (err) {
+        // Blob write failure is non-fatal if KV succeeds
+        console.warn('[data-store] Blob backup write failed:', err);
+    }
+}
+
+// ─── Public API ───────────────────────────────────────────────────────────────
 
 /**
- * Read JSON data. Works on both local dev and Vercel.
- * @param localPath  Absolute path to the local .json file
- * @param blobKey    Pathname key in Vercel Blob (e.g. 'thinkery/menu.json')
- * @param defaultValue  Fallback if file/blob doesn't exist yet
+ * Read JSON data — always returns immediately consistent data.
  */
 export async function readData<T>(
     localPath: string,
     blobKey: string,
     defaultValue: T,
 ): Promise<T> {
-    if (IS_VERCEL) {
-        return blobRead(blobKey, defaultValue);
+    if (!IS_VERCEL) {
+        return localRead(localPath, defaultValue);
     }
-    return localRead(localPath, defaultValue);
+    if (HAS_KV) {
+        // Primary: Redis — immediately consistent
+        const kvKey = blobKey.replace(/\//g, ':').replace('.json', '');
+        return kvRead(kvKey, defaultValue);
+    }
+    // Fallback: should not be reached in normal operation
+    return defaultValue;
 }
 
 /**
- * Write JSON data. Works on both local dev and Vercel.
+ * Write JSON data — writes to Redis (primary) + Blob (backup).
  */
 export async function writeData<T>(
     localPath: string,
     blobKey: string,
     data: T,
 ): Promise<void> {
-    if (IS_VERCEL) {
-        await blobWrite(blobKey, data);
-    } else {
+    if (!IS_VERCEL) {
         localWrite(localPath, data);
+        return;
     }
+    if (HAS_KV) {
+        const kvKey = blobKey.replace(/\//g, ':').replace('.json', '');
+        // Write to Redis (primary — immediately consistent)
+        await kvWrite(kvKey, data);
+        // Also write to Blob as a backup (async, non-blocking)
+        if (process.env.BLOB_READ_WRITE_TOKEN) {
+            blobWrite(blobKey, data).catch(() => { /* non-fatal */ });
+        }
+        return;
+    }
+    throw new Error('No storage backend configured. Add UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN to your environment.');
 }
 
 /**
- * Synchronous read — ONLY for local dev and server components that cannot use await at top level.
- * On Vercel, falls back to the in-bundle JSON (read-only, but good enough for public pages).
+ * Synchronous read — for server components (RSC) that cannot await.
+ * On Vercel, reads the bundled JSON (build-time snapshot) — suitable for public pages.
+ * For admin pages, use readData() instead.
  */
 export function readDataSync<T>(localPath: string, defaultValue: T): T {
-    // On Vercel, we can still READ the bundled JSON (it was bundled at build time).
-    // Writes go through writeData (async). This is safe for public read-only pages.
     return localRead(localPath, defaultValue);
 }

@@ -2,15 +2,15 @@
 /**
  * scripts/seed-blob.mjs
  *
- * Uploads your local src/data/menu.json and src/data/settings.json
- * to Vercel Blob Storage so production has the correct initial data.
+ * Seeds local src/data/*.json files to Upstash Redis (primary) + Vercel Blob (backup).
  *
  * Usage:
  *   node scripts/seed-blob.mjs
  *
- * Requirements:
- *   - BLOB_READ_WRITE_TOKEN must be in your .env.local
- *     (copy it from Vercel Dashboard → Storage → your Blob store → .env.local)
+ * Requirements (add to .env.local):
+ *   UPSTASH_REDIS_REST_URL=...
+ *   UPSTASH_REDIS_REST_TOKEN=...
+ *   BLOB_READ_WRITE_TOKEN=...  (optional backup)
  */
 
 import { readFileSync, existsSync } from 'fs';
@@ -20,12 +20,12 @@ import { fileURLToPath } from 'url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, '..');
 
-// ─── Load .env.local manually (no third-party dotenv needed) ─────────────────
+// ─── Load .env.local manually ─────────────────────────────────────────────────
 
 function loadEnv() {
     const envPath = join(ROOT, '.env.local');
     if (!existsSync(envPath)) {
-        console.error('❌  .env.local not found. Please create it with BLOB_READ_WRITE_TOKEN.');
+        console.error('❌  .env.local not found.');
         process.exit(1);
     }
     const lines = readFileSync(envPath, 'utf-8').split('\n');
@@ -42,36 +42,44 @@ function loadEnv() {
 
 loadEnv();
 
-const TOKEN = process.env.BLOB_READ_WRITE_TOKEN;
-if (!TOKEN) {
-    console.error('❌  BLOB_READ_WRITE_TOKEN not found in .env.local');
-    console.error('   → Go to Vercel Dashboard → Storage → your Blob store → .env.local tab');
-    console.error('   → Copy BLOB_READ_WRITE_TOKEN and paste it into your .env.local');
-    process.exit(1);
-}
-
-// ─── Import Vercel Blob ───────────────────────────────────────────────────────
-
-const { put } = await import('@vercel/blob');
-
-// ─── Files to seed ───────────────────────────────────────────────────────────
+// ─── Files to seed ─────────────────────────────────────────────────────────
 
 const FILES = [
     {
         localPath: join(ROOT, 'src', 'data', 'menu.json'),
         blobKey: 'thinkery/menu.json',
+        kvKey: 'thinkery:menu',
         label: 'Menu  (categories + items)',
     },
     {
         localPath: join(ROOT, 'src', 'data', 'settings.json'),
         blobKey: 'thinkery/settings.json',
+        kvKey: 'thinkery:settings',
         label: 'Settings (gallery, offerings, page images)',
     },
 ];
 
-// ─── Upload ───────────────────────────────────────────────────────────────────
+// ─── Seed Upstash Redis ────────────────────────────────────────────────────────
 
-console.log('\n🚀  Thinkery → Vercel Blob Seed\n');
+const KV_URL = process.env.UPSTASH_REDIS_REST_URL;
+const KV_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
+
+console.log('\n🚀  Thinkery → Data Store Seed\n');
+
+if (!KV_URL || !KV_TOKEN) {
+    console.error('❌  UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN are required.');
+    console.error('\n📋  Setup Steps:');
+    console.error('   1. Go to https://vercel.com/dashboard → your project → Storage');
+    console.error('   2. Click "Create Database" → choose "Redis" (powered by Upstash)');
+    console.error('   3. Click the ".env.local" tab in the KV store panel');
+    console.error('   4. Copy UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN into your .env.local\n');
+    process.exit(1);
+}
+
+const { Redis } = await import('@upstash/redis');
+const redis = new Redis({ url: KV_URL, token: KV_TOKEN });
+
+console.log('📦  Seeding Upstash Redis (primary store)...\n');
 
 let allOk = true;
 
@@ -83,42 +91,55 @@ for (const file of FILES) {
 
     const json = readFileSync(file.localPath, 'utf-8');
 
-    // Validate JSON before uploading
+    let parsed;
     try {
-        JSON.parse(json);
+        parsed = JSON.parse(json);
     } catch {
         console.error(`❌  Invalid JSON in ${file.localPath} — skipping.`);
         allOk = false;
         continue;
     }
 
-    process.stdout.write(`   Uploading ${file.label} ... `);
-
+    process.stdout.write(`   ${file.label} → Redis key "${file.kvKey}" ... `);
     try {
-        const result = await put(file.blobKey, json, {
-            access: 'public',
-            contentType: 'application/json',
-            addRandomSuffix: false,
-            allowOverwrite: true,
-        });
-
-        console.log(`✅  ${result.url}`);
+        await redis.set(file.kvKey, parsed);
+        console.log('✅  Done');
     } catch (err) {
         console.error(`❌  Failed: ${err.message}`);
         allOk = false;
     }
 }
 
+// ─── Also seed Vercel Blob as backup ──────────────────────────────────────────
+
+const BLOB_TOKEN = process.env.BLOB_READ_WRITE_TOKEN;
+
+if (BLOB_TOKEN) {
+    console.log('\n📦  Seeding Vercel Blob (backup)...\n');
+    const { put } = await import('@vercel/blob');
+    for (const file of FILES) {
+        if (!existsSync(file.localPath)) continue;
+        const json = readFileSync(file.localPath, 'utf-8');
+        process.stdout.write(`   ${file.label} → Blob "${file.blobKey}" ... `);
+        try {
+            const result = await put(file.blobKey, json, {
+                access: 'public',
+                contentType: 'application/json',
+                addRandomSuffix: false,
+                allowOverwrite: true,
+            });
+            console.log(`✅  ${result.url}`);
+        } catch (err) {
+            console.warn(`⚠️   Blob backup failed (non-fatal): ${err.message}`);
+        }
+    }
+}
+
 console.log('\n' + (allOk
-    ? '✅  All files seeded successfully! Your Vercel production site now has the latest data.\n   → Redeploy on Vercel is NOT required — Blob reads are always live.\n'
-    : '⚠️   Some files failed to upload. Check the errors above.\n'
+    ? '✅  All files seeded! Production site now has the latest data.\n'
+    : '⚠️   Some files failed. Check errors above.\n'
 ));
 
-// ─── Show how to view in Vercel Dashboard ────────────────────────────────────
-
-console.log('💡  To VIEW your blob files in the Vercel Dashboard:');
-console.log('   1. Go to https://vercel.com/dashboard');
-console.log('   2. Click your project → Storage tab');
-console.log('   3. Click your Blob store');
-console.log('   4. You will see thinkery/menu.json and thinkery/settings.json');
-console.log('   5. Click any file to preview its content\n');
+console.log('💡  To view your data:');
+console.log('   Redis: https://console.upstash.com → your database → Data Browser');
+console.log('   Keys:  thinkery:menu   and   thinkery:settings\n');
