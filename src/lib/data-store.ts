@@ -4,22 +4,71 @@
  * Storage tier priority:
  *
  *  LOCAL DEV    → src/data/*.json  (fast, no auth required)
- *  VERCEL + KV  → Upstash Redis    (immediately consistent, no CDN)
- *  VERCEL + Blob only → Vercel Blob (legacy fallback, CDN-cached — not recommended for writes)
+ *  VERCEL + KV  → Redis via REDIS_URL (immediately consistent, no CDN)
+ *  Fallback     → Vercel Blob (CDN-backed — not recommended for writes)
  *
  * Why Redis over Blob for mutable data:
  *   Vercel Blob uses a CDN. After overwriting a blob, the CDN may serve stale
- *   content for 10–60+ seconds regardless of cache-busting headers.
- *   Upstash Redis (KV) has NO CDN layer — reads always return the latest write.
+ *   content for 10–60+ seconds. Redis is immediately consistent on every read.
  */
 
 import { readFileSync, writeFileSync, existsSync } from 'fs';
-import { join } from 'path';
 
 // ─── Environment detection ────────────────────────────────────────────────────
 
-const IS_VERCEL = !!(process.env.VERCEL || process.env.BLOB_READ_WRITE_TOKEN || process.env.UPSTASH_REDIS_REST_URL);
-const HAS_KV = !!(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN);
+const IS_VERCEL = !!(process.env.VERCEL || process.env.BLOB_READ_WRITE_TOKEN || process.env.REDIS_URL);
+const HAS_REDIS = !!process.env.REDIS_URL;
+
+// ─── Redis singleton (reuse connection across requests in same process) ───────
+
+let redisClient: import('ioredis').default | null = null;
+
+async function getRedis() {
+    if (redisClient && redisClient.status === 'ready') return redisClient;
+
+    const { default: Redis } = await import('ioredis');
+
+    redisClient = new Redis(process.env.REDIS_URL!, {
+        // Serverless-safe: reconnect automatically but don't hang indefinitely
+        maxRetriesPerRequest: 3,
+        connectTimeout: 5000,
+        lazyConnect: false,
+        // Keep connection alive within the same serverless invocation
+        enableReadyCheck: true,
+        // Required for TLS Redis Cloud connections
+        tls: process.env.REDIS_URL!.startsWith('rediss://') ? {} : undefined,
+    });
+
+    redisClient.on('error', (err) => {
+        console.error('[data-store] Redis error:', err.message);
+    });
+
+    return redisClient;
+}
+
+// ─── Redis Helpers ────────────────────────────────────────────────────────────
+
+async function kvRead<T>(kvKey: string, defaultValue: T): Promise<T> {
+    try {
+        const redis = await getRedis();
+        const raw = await redis.get(kvKey);
+        if (!raw) return defaultValue;
+        return JSON.parse(raw) as T;
+    } catch (err) {
+        console.error('[data-store] Redis GET error:', err);
+        return defaultValue;
+    }
+}
+
+async function kvWrite<T>(kvKey: string, data: T): Promise<void> {
+    try {
+        const redis = await getRedis();
+        await redis.set(kvKey, JSON.stringify(data));
+    } catch (err) {
+        console.error('[data-store] Redis SET error:', err);
+        throw err;
+    }
+}
 
 // ─── Local File Helpers ───────────────────────────────────────────────────────
 
@@ -40,62 +89,32 @@ function localWrite<T>(filePath: string, data: T): void {
     writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8');
 }
 
-// ─── Upstash Redis (KV) Helpers ───────────────────────────────────────────────
-// Immediately consistent — no CDN, reads always see the latest write.
-
-async function kvRead<T>(kvKey: string, defaultValue: T): Promise<T> {
-    try {
-        const { Redis } = await import('@upstash/redis');
-        const redis = new Redis({
-            url: process.env.UPSTASH_REDIS_REST_URL!,
-            token: process.env.UPSTASH_REDIS_REST_TOKEN!,
-        });
-        const data = await redis.get<T>(kvKey);
-        return data ?? defaultValue;
-    } catch (err) {
-        console.error('[data-store] KV read error:', err);
-        return defaultValue;
-    }
-}
-
-async function kvWrite<T>(kvKey: string, data: T): Promise<void> {
-    try {
-        const { Redis } = await import('@upstash/redis');
-        const redis = new Redis({
-            url: process.env.UPSTASH_REDIS_REST_URL!,
-            token: process.env.UPSTASH_REDIS_REST_TOKEN!,
-        });
-        // Store with no expiry — data persists until explicitly updated
-        await redis.set(kvKey, data);
-    } catch (err) {
-        console.error('[data-store] KV write error:', err);
-        throw err;
-    }
-}
-
-// ─── Vercel Blob Helpers (write-backup only) ──────────────────────────────────
-// Used as a secondary backup store. NOT used for reads (CDN caching makes reads unreliable).
+// ─── Blob backup write (non-blocking) ────────────────────────────────────────
 
 async function blobWrite<T>(blobKey: string, data: T): Promise<void> {
     try {
         const { put } = await import('@vercel/blob');
-        const json = JSON.stringify(data, null, 2);
-        await put(blobKey, json, {
+        await put(blobKey, JSON.stringify(data, null, 2), {
             access: 'public',
             contentType: 'application/json',
             addRandomSuffix: false,
             allowOverwrite: true,
         });
-    } catch (err) {
-        // Blob write failure is non-fatal if KV succeeds
-        console.warn('[data-store] Blob backup write failed:', err);
+    } catch {
+        // Non-fatal — Redis is source of truth
     }
+}
+
+// ─── Redis key convention: thinkery/menu.json → thinkery:menu ────────────────
+
+function toKvKey(blobKey: string): string {
+    return blobKey.replace(/\//g, ':').replace('.json', '');
 }
 
 // ─── Public API ───────────────────────────────────────────────────────────────
 
 /**
- * Read JSON data — always returns immediately consistent data.
+ * Read JSON data. On Vercel, reads from Redis (immediately consistent).
  */
 export async function readData<T>(
     localPath: string,
@@ -105,17 +124,14 @@ export async function readData<T>(
     if (!IS_VERCEL) {
         return localRead(localPath, defaultValue);
     }
-    if (HAS_KV) {
-        // Primary: Redis — immediately consistent
-        const kvKey = blobKey.replace(/\//g, ':').replace('.json', '');
-        return kvRead(kvKey, defaultValue);
+    if (HAS_REDIS) {
+        return kvRead(toKvKey(blobKey), defaultValue);
     }
-    // Fallback: should not be reached in normal operation
     return defaultValue;
 }
 
 /**
- * Write JSON data — writes to Redis (primary) + Blob (backup).
+ * Write JSON data. On Vercel, writes to Redis and Blob (backup).
  */
 export async function writeData<T>(
     localPath: string,
@@ -126,23 +142,21 @@ export async function writeData<T>(
         localWrite(localPath, data);
         return;
     }
-    if (HAS_KV) {
-        const kvKey = blobKey.replace(/\//g, ':').replace('.json', '');
-        // Write to Redis (primary — immediately consistent)
-        await kvWrite(kvKey, data);
-        // Also write to Blob as a backup (async, non-blocking)
+    if (HAS_REDIS) {
+        // Primary: Redis (immediately consistent)
+        await kvWrite(toKvKey(blobKey), data);
+        // Backup: Blob (non-blocking, best-effort)
         if (process.env.BLOB_READ_WRITE_TOKEN) {
             blobWrite(blobKey, data).catch(() => { /* non-fatal */ });
         }
         return;
     }
-    throw new Error('No storage backend configured. Add UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN to your environment.');
+    throw new Error('REDIS_URL is not set. Add it to your .env.local and Vercel environment variables.');
 }
 
 /**
- * Synchronous read — for server components (RSC) that cannot await.
- * On Vercel, reads the bundled JSON (build-time snapshot) — suitable for public pages.
- * For admin pages, use readData() instead.
+ * Synchronous read — for server components (RSC).
+ * Reads the bundled JSON (build-time snapshot). For admin, use readData() instead.
  */
 export function readDataSync<T>(localPath: string, defaultValue: T): T {
     return localRead(localPath, defaultValue);
